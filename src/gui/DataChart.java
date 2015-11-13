@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.util.Random;
 
 import javax.swing.JFrame;
@@ -62,7 +63,7 @@ public class DataChart extends JPanel
     * Updates the chart with the given input
     * @param inputPoint - The Point to be added to the graph (x,y)
     */
-   public void update (Point inputPoint) {
+   public void update (Point2D.Double inputPoint) {
 	   dataPoints.add(inputPoint.getX(), inputPoint.getY());
    }
   /*
@@ -85,7 +86,7 @@ public class DataChart extends JPanel
     	 
     	  if (i >= 30) y = r.nextInt(4) + oldY - 2;
     	  //if it's the second half, set the rng to roughly make the points smaller on average
-    	  chart.update(new Point(i,y)); //adds the point to the chart
+    	  chart.update(new Point2D.Double(i,y)); //adds the point to the chart
     	  try {Thread.sleep(1000);} catch (InterruptedException e) {} //sleep to simulate time
     	  oldY = y; //prepare for next loop
       }   

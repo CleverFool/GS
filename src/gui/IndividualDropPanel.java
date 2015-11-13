@@ -4,6 +4,7 @@ import javax.swing.JPanel;
 import java.awt.TextField;
 import javax.swing.JLabel;
 import java.awt.BorderLayout;
+import java.awt.Color;
 
 public class IndividualDropPanel extends JPanel {
 	String dropStatus = "Unreleased";
@@ -26,12 +27,14 @@ public class IndividualDropPanel extends JPanel {
 			}
 		};
 		dropStatusDisplay.setEditable(false);
+		dropStatusDisplay.setBackground(Color.ORANGE);
 		super.add(dropStatusDisplay, BorderLayout.CENTER);
 	}
 
 	public void updateDropStatus(String newStatus) {
 		dropStatus = newStatus;
 		dropStatusDisplay.setText(newStatus);
+		dropStatusDisplay.setBackground(Color.GREEN);
 	}
 
 }
