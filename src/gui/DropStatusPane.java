@@ -1,7 +1,9 @@
 package gui;
 
 import javax.swing.JPanel;
-import java.awt.BorderLayout;
+import java.awt.Font;
+import javax.swing.BoxLayout;
+import java.awt.Component;
 import javax.swing.JLabel;
 
 /**
@@ -13,18 +15,25 @@ public class DropStatusPane extends JPanel {
 	JLabel title;
 	boolean dropToUpdate = false;
 	IndividualDropPanel[] drops;
+	private final int FONT_SIZE = 30;
 
 	public DropStatusPane() {
-		BorderLayout layout = new BorderLayout();
+		BoxLayout layout = new BoxLayout(this, BoxLayout.Y_AXIS);
+		super.setLayout(layout);
 
 		title = new JLabel("Drop Status");
-		super.add(title, BorderLayout.NORTH);
+		super.add(title);
+		Font labelFont = title.getFont();
+		Font newFont = new Font(labelFont.getName(), Font.PLAIN, FONT_SIZE);
+
+		title.setAlignmentX(Component.CENTER_ALIGNMENT);
+		title.setFont(newFont);
 
 		drops = new IndividualDropPanel[2];
 		drops[0] = new IndividualDropPanel(1);
 		drops[1] = new IndividualDropPanel(2);
-		super.add(drops[0], BorderLayout.CENTER);
-		super.add(drops[1], BorderLayout.SOUTH);
+		super.add(drops[0]);
+		super.add(drops[1]);
 	}
 
 	/**
