@@ -18,9 +18,9 @@ public class Instruments extends JPanel {
 	
 	public Instruments() {
 		altitudeText = new JLabel("Altitude [ft]");
-		altitude = new JLabel("I AM AN ALTITUDE");
+		altitude = new JLabel("0");
 		speedText = new JLabel("Airspeed [ft/s]");
-		speed = new JLabel("I AM A SPEED");
+		speed = new JLabel("0");
 		
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		add(altitudeText);
