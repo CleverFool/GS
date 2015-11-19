@@ -3,6 +3,7 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.Random;
@@ -64,7 +65,6 @@ gs.update(raw);
 	
 	private void initGui() {
 		xbee = new XBeeDevice(COM_PORT, BAUD_RATE);
-		setSize(300, 200);
 		setTitle("M-Fly Ground Station");
 		
 		
@@ -82,8 +82,8 @@ gs.update(raw);
 		
 		JComponent fpvCamera = new JButton("CAMERA");
 		//JComponent graph = new JButton("GRAPH");
-		altChart = new DataChart("Altitude", 3200,300);
-		//graph.setPreferredSize(new Dimension(200, 300));
+		int width = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+		altChart = new DataChart("Altitude", width,300);
 		
 		pane.add(altitudeSpeed, BorderLayout.LINE_START);
 		pane.add(fpvCamera, BorderLayout.CENTER);
@@ -143,3 +143,14 @@ System.out.println(p.getX()+" "+p.getY());
 	}
 }
 		
+
+	public void testXBeeMessageParsing() {
+		for(int i = 0; i<60; i++) {
+			String raw = "A,MFLY,"+(Math.random()+i)+","+Math.random()*100+","+Math.random()*20+",";
+			if (i%6 == 0) {
+				raw = "B,"+(int)(Math.random()*2)+","+Math.random()*100+",";
+			}
+			update(raw);
+			try {Thread.sleep(1000);} catch (InterruptedException e){};
+		} // Random Data generator for testing without xbee telemetry
+	}
