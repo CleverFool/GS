@@ -32,7 +32,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 	// Messgae type: A
 	private static final int TIME = 2;
 	private static final int ALTITUDE = 3;
-	private static final int AIRSPEED = 4;
+	private static final int AIRSPEED = 7;
 
 	// Message type: B
 	private static final int B_ALTITUDE = 2;
@@ -54,7 +54,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 		GroundStationMain gs = new GroundStationMain();
 
 		// Simulate XBee messages to test that we interpret them correctly
-		gs.testXBeeMessageParsing();
+		//gs.testXBeeMessageParsing();
 
 	}
 
@@ -87,6 +87,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 		try {
 			xbee.open();
 			xbee.addDataListener(this);
+			System.out.println("setup success!");
 		} catch (XBeeException e) {
 			System.out.println("ERROR: THIS IS FOR ADAM THIS IS INFACT AN ERROR");
 			e.printStackTrace();
@@ -122,8 +123,11 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 			Point2D.Double p = new Point2D.Double(time, alt);
 			System.out.println(p.getX()+" "+p.getY());
 			altChart.update(p); //Update Graphs
-			altitudeSpeed.update((int) alt, (float)airSpeed); //Update Numbers
+			//assuming alt is in meters right now
+			altitudeSpeed.update((int) (alt*3.28), (float)airSpeed); //Update Numbers
 
+			System.out.println(alt);
+			
 		}else if(newData.substring(0,1).equals("B")){ //Update Drop Status
 			String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
@@ -150,11 +154,16 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 	//Remember to implement address-specific listening
 	@Override
 	public void dataReceived(XBeeMessage message) {
+
 		//XBee64BitAddress address = message.getDevice().get64BitAddress();
+		//System.out.println(address.toString());
 		//byte[] data = message.getData();
 		//boolean isBroadcast = message.isBroadcast();
 		String stringOutput = message.getDataString();
+		System.out.println(stringOutput);
 		update(stringOutput);
+		
+		
 
 	}
 
