@@ -35,8 +35,8 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 	private static final int AIRSPEED = 7;
 
 	// Message type: B
-	private static final int B_ALTITUDE = 2;
-	private static final int NUM_DROPPED = 1;
+	private static final int B_ALTITUDE = 4;
+	private static final int NUM_DROPPED = 3;
 
 	// Member objects for each of the panels
 	private DataChart altChart;
@@ -131,9 +131,11 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 		}else if(newData.substring(0,1).equals("B")){ //Update Drop Status
 			String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
+			String timeStr = getRelevantData(newData, TIME);
 			double alt = Double.parseDouble(altStr);
 			int numDropped = Integer.parseInt(numDropStr);
-			payloadDrop.payloadDropped((long)alt, numDropped);
+			double time = Double.parseDouble(timeStr);
+			payloadDrop.payloadDropped((long)time,(long)alt, numDropped);
 		}
 
 	}
