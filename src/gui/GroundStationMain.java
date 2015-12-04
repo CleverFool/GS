@@ -121,12 +121,12 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 			double airSpeed = Double.parseDouble(airSpeedStr);
 
 			Point2D.Double p = new Point2D.Double(time, alt);
-			System.out.println(p.getX()+" "+p.getY());
+//System.out.println(p.getX()+" "+p.getY());
 			altChart.update(p); //Update Graphs
 			//assuming alt is in meters right now
 			altitudeSpeed.update((int) (alt*3.28), (float)airSpeed); //Update Numbers
 
-			System.out.println(alt);
+//System.out.println(alt);
 			
 		}else if(newData.substring(0,1).equals("B")){ //Update Drop Status
 			String altStr = getRelevantData(newData, B_ALTITUDE);
@@ -136,6 +136,8 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 			int numDropped = Integer.parseInt(numDropStr);
 			double time = Double.parseDouble(timeStr);
 			payloadDrop.payloadDropped((long)time,(long)alt, numDropped);
+			
+			System.out.println("B "+newData);
 		}
 
 	}
@@ -155,15 +157,15 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 
 	//Remember to implement address-specific listening
 	@Override
-	public void dataReceived(XBeeMessage message) {
+	public void dataReceived(XBeeMessage message) { //Method for when data is recieved
 
-		//XBee64BitAddress address = message.getDevice().get64BitAddress();
-		//System.out.println(address.toString());
-		//byte[] data = message.getData();
-		//boolean isBroadcast = message.isBroadcast();
+		XBee64BitAddress address = message.getDevice().get64BitAddress();
+//System.out.println(address.toString()=="0013A20040E6D613");
+		//if (address.toString() == "0013A20040E6D613"){//check if data is from the correct address
 		String stringOutput = message.getDataString();
-		System.out.println(stringOutput);
+//System.out.println(stringOutput);
 		update(stringOutput);
+		//}
 		
 		
 
