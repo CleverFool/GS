@@ -41,13 +41,16 @@ public class DropStatusPane extends JPanel {
 	 * @param duration Time in seconds since start of flight.
 	 * @param altitude How high the plane was when it dropped the payload.
 	 */
-	public void payloadDropped(long duration, int altitude) {
-		String newPayloadStatus = "";
-		newPayloadStatus += timeElapsedToString(duration);
-		newPayloadStatus += "; ";
+	public void payloadDropped(long time, long altitude, int numDropped) {
+
+		String newPayloadStatus = "";//Construct a drop status message
+		newPayloadStatus += time;
+		newPayloadStatus += "s; ";
 		newPayloadStatus += altitude;
 		newPayloadStatus += "ft"; // Change to whatever units the altitude is given in.
-
+		newPayloadStatus += ";\n ";
+		newPayloadStatus += numDropped+" dropped";
+		
 		drops[dropToUpdate ? 1 : 0].updateDropStatus(newPayloadStatus);
 		dropToUpdate = !dropToUpdate;
 	}
@@ -56,7 +59,7 @@ public class DropStatusPane extends JPanel {
 	 * Changes duration from a number format to a string time format.
 	 * @param duration Time in seconds since start of flight.
 	 * @return A string representation of the duration.
-	 */
+	 */ //Not sure if this method is still needed
 	protected String timeElapsedToString(long duration) {
 		final long HpS = 60 * 60;
 		final long MpS = 60;
