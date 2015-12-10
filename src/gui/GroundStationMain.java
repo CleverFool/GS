@@ -153,7 +153,8 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 			double alt = Double.parseDouble(altStr);
 			int numDropped = Integer.parseInt(numDropStr);
 //double time = Double.parseDouble(timeStr);
-
+			Point2D.Double p = new Point2D.Double((double)time, alt);
+			altChart.update(p); //Update Graphs
 			payloadDrop.payloadDropped((long)time,(long)alt, numDropped);
 			
 		}
