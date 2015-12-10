@@ -3,9 +3,19 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.Point;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Random;
 
 import javax.swing.*;
@@ -16,101 +26,105 @@ import com.digi.xbee.api.listeners.IDataReceiveListener;
 import com.digi.xbee.api.models.XBee64BitAddress;
 import com.digi.xbee.api.models.XBeeMessage;
 
-/**
- * Main class for the project. Creates the top-level gui object. Also listens for XBee messages.
- */
-public class GroundStationMain extends JFrame implements IDataReceiveListener{
-
-	// Constants
+public class GroundStationMain extends JFrame implements IDataReceiveListener, WindowListener{
+	
+	//Constants
 	private static final long serialVersionUID = -5652170290197609712L;
-
-	// Information for initializing Xbees
-	private static final String COM_PORT = "/dev/tty.usbserial-DA01OPLP";  //PLACEHOLDER
+	
+	//Information for initializing Xbees
+	private static final String COM_PORT = "COM5";  //PLACEHOLDER
 	private static final int BAUD_RATE = 9600; //PLACEHOLDER
-
-	// Location of specific telemetry in XBee message mapped out in English instead of numbers
-	// Messgae type: A
+	
+	//Location of specific telemetry mapped out in English instead of numbers
 	private static final int TIME = 2;
 	private static final int ALTITUDE = 3;
-	private static final int AIRSPEED = 7;
-
-	// Message type: B
+	private static final int AIRSPEED = 4;
+	
 	private static final int B_ALTITUDE = 2;
 	private static final int NUM_DROPPED = 1;
-
-	// Member objects for each of the panels
+	
 	private DataChart altChart;
 	private Instruments altitudeSpeed;
 	private DropStatusPane payloadDrop;
-
-	// The XBee device
 	private XBeeDevice xbee;
+	private PrintWriter out;
+	private int messageNumber =0; //FIX SO IT'S NOT HARD CODED
 
-	/**
-	 * Entry point for the ground station.
-	 * @param args Command line arguments. Not used.
-	 */
+	
+	
+	//MAIN
 	public static void main(String[] args) {
 		GroundStationMain gs = new GroundStationMain();
-
-		// Simulate XBee messages to test that we interpret them correctly
-		//gs.testXBeeMessageParsing();
+		
+		
+/*for(int i = 0; i<60; i++){
+String raw =	"A,MFLY,"+(Math.random()+i)+","+Math.random()*100+","+Math.random()*20+",";
+if (i%6 == 0){
+	raw = "B,"+(int)(Math.random()*2)+","+Math.random()*100+",";
+}
+gs.update(raw);
+	 try {Thread.sleep(1000);} catch (InterruptedException e){};
+}*/ // Random Data generator for testing without xbee telemetry
 
 	}
-
-
-	/**
-	 * Default constructor.
-	 */
+	
 	public GroundStationMain() {
-		// Set the window to take maximize to fill the whole screen.
-		super.setExtendedState(super.getExtendedState() | JFrame.MAXIMIZED_BOTH);
-		// Exit the program when you close the window.
-		super.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		initGui();
-
-		super.setVisible(true);
-	}
-
-	/**
-	 * Initialize the gui
-	 */
+		System.out.println("Hi");
+    	while (!setUpXBee(false)) { //multiple times, no error msg
+			try {Thread.sleep(1000);}
+			catch (InterruptedException e) {}
+		}  
+	} 
+	
 	private void initGui() {
-		// Set the window's title
-		setTitle("M-Fly Ground Station");
-
-		// Create a new XBee device object
 		xbee = new XBeeDevice(COM_PORT, BAUD_RATE);
-
-
-		// Try opening and connecting to the device
+		setSize(300, 200);
+		setTitle("M-Fly Ground Station");
+		setUpXBee(true); //first time, print an error
+		Container pane = getContentPane();
+		Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH-mm-ss");
+        String fileName = "M-FLY_LOG-" + sdf.format(cal.getTime()) + ".txt";
+        try {out = new PrintWriter(fileName,"UTF-8");} catch (FileNotFoundException e) {} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        out.print("Hello World");
+        File file = new File(fileName);
+        System.out.println("Path : " + file.getAbsolutePath());
+		altitudeSpeed = new Instruments();
+		payloadDrop = new DropStatusPane();
+		
+		JComponent fpvCamera = new JButton("CAMERA");
+		//JComponent graph = new JButton("GRAPH");
+		altChart = new DataChart("Altitude", 3200,300);
+		//graph.setPreferredSize(new Dimension(200, 300));
+		
+		pane.add(altitudeSpeed, BorderLayout.LINE_START);
+		pane.add(fpvCamera, BorderLayout.CENTER);
+		pane.add(payloadDrop, BorderLayout.LINE_END);
+		pane.add(altChart, BorderLayout.PAGE_END);
+	
+		this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
+		this.addWindowListener(this);
+		this.setVisible(true);
+		
+	   }
+	private boolean setUpXBee(boolean firstTry) {
+		if (xbee.isOpen()) return true;
 		try {
 			xbee.open();
 			xbee.addDataListener(this);
-			System.out.println("setup success!");
+			if (!firstTry) System.out.println("XBee Connected");
+			return true;
 		} catch (XBeeException e) {
-			System.out.println("ERROR: THIS IS FOR ADAM THIS IS INFACT AN ERROR");
-			e.printStackTrace();
+		//System.out.println(firstTry);
+			if (firstTry) e.printStackTrace();
+			
+			return false;
 		}
-
-
-		altitudeSpeed = new Instruments();
-		payloadDrop = new DropStatusPane();
-
-		// Add a placeholder panel for the video feed
-		JComponent fpvCamera = new JButton("CAMERA");
-
-		// Make a new chart and set it to the size of the screen so it fills the window
-		int width = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
-		altChart = new DataChart("Altitude", width,300);
-
-		// Add all the components to the window
-		super.add(altitudeSpeed, BorderLayout.LINE_START);
-		super.add(fpvCamera, BorderLayout.CENTER);
-		super.add(payloadDrop, BorderLayout.LINE_END);
-		super.add(altChart, BorderLayout.PAGE_END);
 	}
-
 	public void update(String newData) {
 		if (newData.substring(0,1).equals("A")) {
 			String altStr = getRelevantData(newData, ALTITUDE);
@@ -119,15 +133,12 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 			double alt = Double.parseDouble(altStr);
 			double time = Double.parseDouble(timeStr);
 			double airSpeed = Double.parseDouble(airSpeedStr);
-
-			Point2D.Double p = new Point2D.Double(time, alt);
-			System.out.println(p.getX()+" "+p.getY());
-			altChart.update(p); //Update Graphs
-			//assuming alt is in meters right now
-			altitudeSpeed.update((int) (alt*3.28), (float)airSpeed); //Update Numbers
-
-			System.out.println(alt);
 			
+			Point2D.Double p = new Point2D.Double(time, alt);
+System.out.println(p.getX()+" "+p.getY());
+			altChart.update(p); //Update Graphs
+			altitudeSpeed.update((int) alt, (float)airSpeed); //Update Numbers
+		
 		}else if(newData.substring(0,1).equals("B")){ //Update Drop Status
 			String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
@@ -135,9 +146,9 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 			int numDropped = Integer.parseInt(numDropStr);
 			payloadDrop.payloadDropped((long)alt, numDropped);
 		}
-
+		
 	}
-
+	
 	//takes the raw "csv" type data string and extracts the relevant element in the string
 	public String getRelevantData(String rawData, int commaNumber){
 		int startCommaIndex = 0, endCommaIndex;
@@ -150,31 +161,32 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener{
 		String relevantData = rawData.substring(startCommaIndex+1 ,endCommaIndex);
 		return relevantData;
 	}
-
+ 
 	//Remember to implement address-specific listening
 	@Override
 	public void dataReceived(XBeeMessage message) {
-
 		//XBee64BitAddress address = message.getDevice().get64BitAddress();
-		//System.out.println(address.toString());
 		//byte[] data = message.getData();
 		//boolean isBroadcast = message.isBroadcast();
 		String stringOutput = message.getDataString();
-		System.out.println(stringOutput);
+	//	writer.println("LOG:" + stringOutput);
 		update(stringOutput);
 		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent arg0) {
+		System.out.println("Activated");
 		
-
 	}
 
-	public void testXBeeMessageParsing() {
-		for(int i = 0; i<60; i++) {
-			String raw = "A,MFLY,"+(Math.random()+i)+","+Math.random()*100+","+Math.random()*20+",";
-			if (i%6 == 0) {
-				raw = "B,"+(int)(Math.random()*2)+","+Math.random()*100+",";
-			}
-			update(raw);
-			try {Thread.sleep(1000);} catch (InterruptedException e){};
-		} // Random Data generator for testing without xbee telemetry
-	}
+	//needed functions for WindowListener. Only here to close the writer when the X is clicked
+	@Override
+	public void windowClosed(WindowEvent arg0) {}
+	public void windowClosing(WindowEvent arg0) {out.close(); System.exit(0);}
+	public void windowDeactivated(WindowEvent arg0) {}
+	public void windowDeiconified(WindowEvent e) {}
+	public void windowIconified(WindowEvent e) {}
+	public void windowOpened(WindowEvent e) {}
 }
+		
