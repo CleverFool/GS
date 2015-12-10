@@ -42,15 +42,14 @@ public class DropStatusPane extends JPanel {
 	 * @param altitude How high the plane was when it dropped the payload.
 	 */
 	public void payloadDropped(long time, long altitude, int numDropped) {
-		
-		
+
 		String newPayloadStatus = "";//Construct a drop status message
 		newPayloadStatus += time;
 		newPayloadStatus += "s; ";
 		newPayloadStatus += altitude;
 		newPayloadStatus += "ft"; // Change to whatever units the altitude is given in.
-		newPayloadStatus += "; ";
-		newPayloadStatus += numDropped;
+		newPayloadStatus += ";\n ";
+		newPayloadStatus += numDropped+" dropped";
 		
 		drops[dropToUpdate ? 1 : 0].updateDropStatus(newPayloadStatus);
 		dropToUpdate = !dropToUpdate;

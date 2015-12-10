@@ -1,6 +1,8 @@
 package gui;
 
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+
 import java.awt.TextField;
 import java.awt.Component;
 import java.awt.Font;
@@ -15,7 +17,7 @@ public class IndividualDropPanel extends JPanel {
 	private final int FONT_SIZE = 30;
 
 	JLabel dropName;
-	TextField dropStatusDisplay;
+	JTextArea dropStatusDisplay;
 	public IndividualDropPanel(int dropNumber) {
 		this.dropNumber = dropNumber;
 		BoxLayout layout = new BoxLayout(this, BoxLayout.Y_AXIS);
@@ -29,8 +31,9 @@ public class IndividualDropPanel extends JPanel {
 		dropName.setFont(newFont);
 		dropName.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
+		
 
-		dropStatusDisplay = new TextField(dropStatus) {
+		dropStatusDisplay = new JTextArea(dropStatus) {
 			// Prevent this from gaining focus. This is read-only so we don't want it 
 			// grabbing focus from other objects.
 			public boolean isFocusable() {
