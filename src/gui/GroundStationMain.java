@@ -62,23 +62,30 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 	
 	//MAIN
 	public static void main(String[] args) {
-		
 		GroundStationMain gs = new GroundStationMain();
-		
-		
 	}
-	
-	public GroundStationMain() {
+
+	/**
+	 * Default constructor.
+	 */
+	public GroundStationMain() {		
+		// Set the window to take maximize to fill the whole screen.
+		super.setExtendedState(super.getExtendedState() | JFrame.MAXIMIZED_BOTH);
+		// Exit the program when you close the window.
+		super.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		initGui();
 		System.out.println("Hi");
     	while (!setUpXBee(false)) { //multiple times, no error msg
 			try {Thread.sleep(1000);}
 			catch (InterruptedException e) {}
 		}  
-	} 
-	
+		
+		startTime = System.nanoTime();
+		
+		super.setVisible(true);
+	}
+
 	private void initGui() {
-		xbee = new XBeeDevice(COM_PORT, BAUD_RATE);
 		setSize(300, 200);
 		setTitle("M-Fly Ground Station");
 		setUpXBee(true); //first time, print an error
@@ -92,39 +99,8 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		}
         out.print("Hello World");
         File file = new File(fileName);
-        System.out.println("Path : " + file.getAbsolutePath());
-		if(DEBUG_WITHOUT_RADIO){
-		// Simulate XBee messages to test that we interpret them correctly
-		this.testXBeeMessageParsing();
-		}
-	}
-
-
-	/**
-	 * Default constructor.
-	 */
-	public GroundStationMain() {		
-		// Set the window to take maximize to fill the whole screen.
-		super.setExtendedState(super.getExtendedState() | JFrame.MAXIMIZED_BOTH);
-		// Exit the program when you close the window.
-		super.setDefaultCloseOperation(EXIT_ON_CLOSE);
-		initGui();
-		
-		startTime = System.nanoTime();
-		
-		super.setVisible(true);
-	}
-
-	/**
-	 * Initialize the gui
-	 */
-	private void initGui() {
-		// Set the window's title
-		setTitle("M-Fly Ground Station");
-
-		// Try opening and connecting to the device
-		if(!DEBUG_WITHOUT_RADIO){
-			
+        
+        if(!DEBUG_WITHOUT_RADIO){	
 			// Create a new XBee device object
 			xbee = new XBeeDevice(COM_PORT, BAUD_RATE);
 			
@@ -153,8 +129,14 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		this.setExtendedState(this.getExtendedState() | JFrame.MAXIMIZED_BOTH);
 		this.addWindowListener(this);
 		this.setVisible(true);
-		
-	   }
+        
+        System.out.println("Path : " + file.getAbsolutePath());
+		if(DEBUG_WITHOUT_RADIO){
+		// Simulate XBee messages to test that we interpret them correctly
+		this.testXBeeMessageParsing();
+		}
+	}
+
 	private boolean setUpXBee(boolean firstTry) {
 		if (xbee.isOpen()) return true;
 		try {
