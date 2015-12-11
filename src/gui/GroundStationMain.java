@@ -8,6 +8,7 @@ import java.awt.MenuItem;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -33,10 +34,10 @@ import com.digi.xbee.api.models.XBeeMessage;
 
 import gnu.io.CommPortIdentifier;
 
-public class GroundStationMain extends JFrame implements IDataReceiveListener, WindowListener{
+public class GroundStationMain extends JFrame implements IDataReceiveListener, WindowListener, ActionListener{
 
 	//Debug boolean
-	private static final boolean DEBUG_WITHOUT_RADIO = true;
+	private static final boolean DEBUG_WITHOUT_RADIO = false;
 	
 	// Constants
 	private static final long serialVersionUID = -5652170290197609712L;
@@ -56,8 +57,9 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 	private static final int B_ALTITUDE = 3;
 	private static final int NUM_DROPPED = 2;
 
+	private String comPort;
+	
 	// Member objects for each of the panels
-	private JMenuBar menuBar;
 	private DataChart altChart;
 	private Instruments altitudeSpeed;
 	private DropStatusPane payloadDrop;
@@ -66,6 +68,9 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 	private PrintWriter out;
 	private int messageNumber =0; //FIX SO IT'S NOT HARD CODED
 
+	//Menu Bar Variables
+	private JMenuBar menuBar;
+	private JMenu comMenu;
 	
 	
 	//MAIN
@@ -81,14 +86,9 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		// Set the window to take maximize to fill the whole screen.
 		super.setExtendedState(super.getExtendedState() | JFrame.MAXIMIZED_BOTH);
 		// Exit the program when you close the window.
-		super.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		super.setDefaultCloseOperation(EXIT_ON_CLOSE);       
 		
-		java.util.Enumeration<CommPortIdentifier> portEnum = CommPortIdentifier.getPortIdentifiers();
-		while( portEnum.hasMoreElements()){
-			CommPortIdentifier portIdentifier = portEnum.nextElement();
-            System.out.println(portIdentifier.getName()  +  " - " +  getPortTypeName(portIdentifier.getPortType()) );
-        }        
-		
+		detectComPorts();
 		initGui();
 		System.out.println("Hi");
 		
@@ -96,7 +96,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 	    	while (!setUpXBee(false)) { //multiple times, no error msg
 				try {Thread.sleep(1000);}
 				catch (InterruptedException e) {}
-			}  
+			}  System.out.println("Set Success!");
 		}
 		
 		
@@ -104,7 +104,30 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		super.setVisible(true);
 	}
 
-	 String getPortTypeName( int portType )
+	private void detectComPorts(){
+		
+		menuBar = new JMenuBar();
+		comMenu = new JMenu("Select COM Port");
+		menuBar.add(comMenu);
+		
+
+		
+		java.util.Enumeration<CommPortIdentifier> portEnum = CommPortIdentifier.getPortIdentifiers();
+
+		// check mark: \u2713
+		
+		while( portEnum.hasMoreElements()){
+			CommPortIdentifier portIdentifier = portEnum.nextElement();
+            String portName = portIdentifier.getName()  +  " : " +  getPortTypeName(portIdentifier.getPortType());
+    		JMenuItem menuItem = new JMenuItem("  "+portName, KeyEvent.VK_T);
+    		menuItem.addActionListener(this);
+    		comMenu.add(menuItem);
+		} 
+		
+		
+	}
+	
+String getPortTypeName( int portType )
 	    {
 	        switch ( portType )
 	        {
@@ -127,21 +150,11 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		setSize(300, 200);
 		setTitle("M-Fly Ground Station");
 		
-		menuBar = new JMenuBar();
-		JMenu menu = new JMenu("Select COM Port");
-		menuBar.add(menu);
-		
-		JMenuItem menuItem = new JMenuItem("\u2713 A text-only menu item", KeyEvent.VK_T);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(
-		        KeyEvent.VK_1, ActionEvent.ALT_MASK));
-		menuItem.getAccessibleContext().setAccessibleDescription(
-		        "This doesn't really do anything");
-		menu.add(menuItem);
 	    this.setJMenuBar(menuBar);
 		
 		
-		if(!DEBUG_WITHOUT_RADIO){
-			xbee = new XBeeDevice(COM_PORT, BAUD_RATE);
+		if(!DEBUG_WITHOUT_RADIO && comPort != null){
+			
 			setUpXBee(true); //first time, print an error
 		}
 		
@@ -187,18 +200,27 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
     
 	private boolean setUpXBee(boolean firstTry) {
 		
-		if (xbee.isOpen()) return true;
-		try {
-			xbee.open();
-			xbee.addDataListener(this);
-			if (!firstTry) System.out.println("XBee Connected");
-			return true;
-		} catch (XBeeException e) {
-		//System.out.println(firstTry);
-			if (firstTry) e.printStackTrace();
+		
+		
+		if(comPort != null){
+				xbee = new XBeeDevice(comPort, BAUD_RATE);
+				if (xbee.isOpen()) return true;
+		
 			
-			return false;
+			try {
+				xbee.open();
+				xbee.addDataListener(this);
+				if (!firstTry) System.out.println("XBee Connected");
+				return true;
+			} catch (XBeeException e) {
+			//System.out.println(firstTry);
+				if (firstTry) e.printStackTrace();
+				
+				return false;
+			}
 		}
+		
+		return false;
 	}
 	public void update(String newData) {
 		
@@ -266,6 +288,14 @@ System.out.println(stringOutput);//+" "+stringOutput.substring(0, 1)+" "+stringO
 		} // Random Data generator for testing without xbee telemetry
 	}
 
+	public void actionPerformed(ActionEvent e){
+		JMenuItem source = (JMenuItem)(e.getSource());
+		String s = source.getText();
+		int endSerial = s.indexOf(':');
+		comPort = s.substring(2,endSerial-1);
+		System.out.println(comPort);
+	}
+	
 	//needed functions for WindowListener. Only here to close the writer when the X is clicked
 	@Override
 	public void windowActivated(WindowEvent arg0) {}
