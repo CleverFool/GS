@@ -71,6 +71,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 	//Menu Bar Variables
 	private JMenuBar menuBar;
 	private JMenu comMenu;
+	private JMenuItem currentCom;
 	
 	
 	//MAIN
@@ -88,18 +89,20 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		// Exit the program when you close the window.
 		super.setDefaultCloseOperation(EXIT_ON_CLOSE);       
 		
+		this.addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+		    	
+		    	try{
+		    	xbee.close();
+		    	}catch(Exception e){}
+		       System.out.println("The Gui has been exited.");
+		    }
+		});
+		
 		detectComPorts();
 		initGui();
 		System.out.println("Hi");
-		
-		if(!DEBUG_WITHOUT_RADIO){
-	    	while (!setUpXBee(false)) { //multiple times, no error msg
-				try {Thread.sleep(1000);}
-				catch (InterruptedException e) {}
-			}  System.out.println("Set Success!");
-		}
-		
-		
 		
 		super.setVisible(true);
 	}
@@ -214,8 +217,7 @@ String getPortTypeName( int portType )
 				return true;
 			} catch (XBeeException e) {
 			//System.out.println(firstTry);
-				if (firstTry) e.printStackTrace();
-				
+				e.printStackTrace();
 				return false;
 			}
 		}
@@ -289,11 +291,31 @@ System.out.println(stringOutput);//+" "+stringOutput.substring(0, 1)+" "+stringO
 	}
 
 	public void actionPerformed(ActionEvent e){
-		JMenuItem source = (JMenuItem)(e.getSource());
-		String s = source.getText();
-		int endSerial = s.indexOf(':');
-		comPort = s.substring(2,endSerial-1);
+		
+		String oldName, newName;
+		
+		if(currentCom != null){
+			oldName = currentCom.getText();
+			newName = oldName.substring(0, 1)+" "+oldName.substring(2);
+			currentCom.setText(newName);
+		}
+		
+		currentCom = (JMenuItem)(e.getSource());
+		oldName = currentCom.getText();
+		int endSerial = oldName.indexOf(':');
+		comPort = oldName.substring(2,endSerial-1);
 		System.out.println(comPort);
+		
+		if(!DEBUG_WITHOUT_RADIO){
+	    	if(setUpXBee(false)){
+	    		System.out.println("Set Up Success!");
+	    	}else{
+	    		System.out.println("Could not connect to Com Port: "+comPort);
+	    	}
+		}
+		
+		newName = oldName.substring(0,1)+"\u2713"+oldName.substring(2);
+		currentCom.setText(newName);
 	}
 	
 	//needed functions for WindowListener. Only here to close the writer when the X is clicked
