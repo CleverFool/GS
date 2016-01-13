@@ -20,6 +20,9 @@ import java.util.Random;
 
 import javax.swing.*;
 
+import org.jfree.chart.plot.CategoryPlot;
+
+import com.digi.xbee.api.XBee;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.listeners.IDataReceiveListener;
@@ -80,24 +83,26 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 			catch (InterruptedException e) {}
 		}  
 		
-		startTime = System.nanoTime();
+		
 		
 		super.setVisible(true);
 	}
 
 	private void initGui() {
+		startTime = System.nanoTime();
 		setSize(300, 200);
 		setTitle("M-Fly Ground Station");
+		xbee = new XBeeDevice (COM_PORT, BAUD_RATE);
 		setUpXBee(true); //first time, print an error
 		Container pane = getContentPane();
 		Calendar cal = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("HH-mm-ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy-HH-mm-ss");
         String fileName = "M-FLY_LOG-" + sdf.format(cal.getTime()) + ".txt";
-        try {out = new PrintWriter(fileName,"UTF-8");} catch (FileNotFoundException e) {} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
+        try {out = new PrintWriter(fileName,"UTF-8");} catch (FileNotFoundException e) 
+        {} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-        out.print("Hello World");
+        out.print("=== START OF LOG ======");
         File file = new File(fileName);
         
         if(!DEBUG_WITHOUT_RADIO){	
@@ -152,12 +157,14 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		}
 	}
 	public void update(String newData) {
-		
 		double time = (System.nanoTime()-startTime)/1000000000.0;
 		if (newData.substring(0,1).equals("A")) {
 			String altStr = getRelevantData(newData, ALTITUDE);
 //String timeStr = getRelevantData(newData, TIME);
+			out.print("ALT: " + altStr + " ");
 			String airSpeedStr = getRelevantData(newData, AIRSPEED);
+
+			out.print("AIRSPEED: " + airSpeedStr + "\n");
 			double alt = Double.parseDouble(altStr);
 //double time = Double.parseDouble(timeStr);
 			double airSpeed = Double.parseDouble(airSpeedStr);
@@ -167,7 +174,8 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 			altitudeSpeed.update((int) (alt*3.28), (float)airSpeed); //Update Numbers
 
 		}else if(newData.charAt(0) == 'B'){ //Update Drop Status
-			System.out.println("Drop Recieved: "+newData);
+			out.print("Drop Recieved: "+ newData + " ");
+			
 			String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
 //String timeStr = getRelevantData(newData, TIME);
@@ -175,7 +183,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 			int numDropped = Integer.parseInt(numDropStr);
 //double time = Double.parseDouble(timeStr);
 			Point2D.Double p = new Point2D.Double((double)time, alt);
-			altChart.update(p); //Update Graphs
+			altChart.update(p, true); //Update Graphs
 			payloadDrop.payloadDropped((long)time,(long)alt, numDropped);
 			
 		}
