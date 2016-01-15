@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.MenuBar;
@@ -77,6 +78,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 	private JMenuBar menuBar;
 	private JMenu comMenu;
 	private JMenuItem currentCom;
+	private JTextArea comStatus;
 	
 	
 	//MAIN
@@ -118,7 +120,10 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		menuBar = new JMenuBar();
 		comMenu = new JMenu("Select COM Port");
 		menuBar.add(comMenu);
-				
+		comStatus = new JTextArea("Com Status: No Attempts Yet");
+		comStatus.setEditable(false);
+		comStatus.setBackground(Color.orange);
+		menuBar.add(comStatus);
 		java.util.Enumeration<CommPortIdentifier> portEnum = CommPortIdentifier.getPortIdentifiers();
 
 		// check mark: \u2713
@@ -182,16 +187,19 @@ String getPortTypeName( int portType )
 		altitudeSpeed = new Instruments();
 		dataScroll = new ScrollingDataText();
 		
+		JPanel dataScrollPanel = new JPanel(new BorderLayout());
+		dataScrollPanel.add(dataScroll, BorderLayout.CENTER);
+		
 		westPanel.setLayout(new BorderLayout());
 		westPanel.add(altitudeSpeed, BorderLayout.PAGE_START);
-		westPanel.add(dataScroll, BorderLayout.PAGE_END);
+		westPanel.add(dataScrollPanel, BorderLayout.PAGE_END);
+	//	westPanel.repaint();
 		
-		JFrame frame = new JFrame(); // frame, you would replace this with the JPanel
+	/*	JFrame frame = new JFrame(); // frame, you would replace this with the JPanel
 	      frame.add(westPanel);   // add the created opject to your Panel/Frame
 	      frame.setVisible(true); //set the master frame visible
-	      frame.setSize(400, 300); //set your size, should be slightly larger than construcor size
-	      frame.pack();
-			
+	      frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
+		*/	
 		
 		payloadDrop = new DropStatusPane();
 		
@@ -204,6 +212,7 @@ String getPortTypeName( int portType )
 		
 		//graph.setPreferredSize(new Dimension(200, 300));
 		
+		//pane.add(dataScroll, BorderLayout.LINE_START);
 		pane.add(westPanel, BorderLayout.LINE_START);
 		pane.add(fpvCamera, BorderLayout.CENTER);
 		pane.add(payloadDrop, BorderLayout.LINE_END);
@@ -246,14 +255,19 @@ String getPortTypeName( int portType )
 	public void update(String newData) {
 		double time = (System.nanoTime()-startTime)/1000000000.0;
 		
+	
+		
 		if (newData.substring(0,1).equals("A")) {
 			String altStr = getRelevantData(newData, ALTITUDE);
 //String timeStr = getRelevantData(newData, TIME);
 			out.print("ALT: " + altStr + " ");
+			dataScroll.update("ALT: "+altStr+"; ");
 			
 			String airSpeedStr = getRelevantData(newData, AIRSPEED);
 
 			out.print("AIRSPEED: " + airSpeedStr + "\n");
+			dataScroll.update("AIRSPEED: "+airSpeedStr+". ");
+			
 			double alt = Double.parseDouble(altStr);
 //double time = Double.parseDouble(timeStr);
 			double airSpeed = Double.parseDouble(airSpeedStr);
@@ -261,9 +275,11 @@ String getPortTypeName( int portType )
 			altChart.update(p); //Update Graphs
 			//assuming alt is in meters right now
 			altitudeSpeed.update((int) (alt), (float)airSpeed); //Update Numbers
-
+			
+			
 		}else if(newData.charAt(0) == 'B'){ //Update Drop Status
 			out.print("Drop Recieved: "+ newData + " ");
+			dataScroll.update("Drop Recieved: "+newData+" ");
 			
 			String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
@@ -276,6 +292,8 @@ String getPortTypeName( int portType )
 			payloadDrop.payloadDropped((long)time,(long)alt, numDropped);
 			
 		}
+		
+		westPanel.repaint();
 		
 	}
 	
@@ -334,8 +352,12 @@ System.out.println(stringOutput);//+" "+stringOutput.substring(0, 1)+" "+stringO
 		if(!DEBUG_WITHOUT_RADIO){
 	    	if(setUpXBee(false)){
 	    		System.out.println("Set Up Success!");
+	    		comStatus.setText("Com Status: Connected to '"+comPort+"' :: REMEMBER TO UNPLUG AND REPLUG RADIO AFTER EXIT, cuz im lazy and didn't fix it yet.");
+	    		comStatus.setBackground(Color.GREEN);
 	    	}else{
 	    		System.out.println("Could not connect to Com Port: "+comPort);
+	    		comStatus.setText("Com Status: No Connection Established :: REMEMBER TO UNPLUG AND REPLUG RADIO AFTER EXIT, cuz im lazy and didn't fix it yet.");
+	    		comStatus.setBackground(Color.RED);
 	    	}
 		}
 		

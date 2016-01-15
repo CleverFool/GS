@@ -41,7 +41,7 @@ public class Instruments extends JPanel {
 		speedText.setAlignmentX(Component.CENTER_ALIGNMENT);
 		speed.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		setPreferredSize(new Dimension(300,1));	
+	//	setPreferredSize(new Dimension(300,1));	
 	}
 	
 	public void update(int alt_in, float speed_in) {
