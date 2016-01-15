@@ -4,16 +4,24 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Image;
 import java.awt.MenuBar;
 import java.awt.MenuItem;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -25,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Random;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import org.jfree.chart.plot.CategoryPlot;
@@ -41,7 +50,7 @@ import gnu.io.CommPortIdentifier;
 public class GroundStationMain extends JFrame implements IDataReceiveListener, WindowListener, ActionListener{
 
 	//Debug boolean
-	private static final boolean DEBUG_WITHOUT_RADIO = true;
+	private static final boolean DEBUG_WITHOUT_RADIO = false;
 	
 	// Constants
 	private static final long serialVersionUID = -5652170290197609712L;
@@ -64,6 +73,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 	private String comPort;
 	
 	// Member objects for each of the panels
+	private Container pane;
 	private JPanel westPanel;
 	private ScrollingDataText dataScroll;
 	private DataChart altChart;
@@ -79,8 +89,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 	private JMenu comMenu;
 	private JMenuItem currentCom;
 	private JTextArea comStatus;
-	
-	
+
 	//MAIN
 	public static void main(String[] args) {
 		GroundStationMain gs = new GroundStationMain();
@@ -109,10 +118,23 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		});
 		
 		detectComPorts();
+		
 		initGui();
 		System.out.println("Hi");
 		
+	
+		
 		super.setVisible(true);
+		
+		if(DEBUG_WITHOUT_RADIO){
+			comStatus.setText("Com Status: Debugging GUI without radio");
+    		comStatus.setBackground(Color.YELLOW);
+    		comStatus.setForeground(Color.BLACK);
+			this.testXBeeMessageParsing();
+			comStatus.setText("Com Status: No Attempts to Connect Yet");
+    		comStatus.setBackground(Color.BLUE);
+    		comStatus.setForeground(Color.YELLOW);
+		}
 	}
 
 	private void detectComPorts(){
@@ -120,10 +142,19 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		menuBar = new JMenuBar();
 		comMenu = new JMenu("Select COM Port");
 		menuBar.add(comMenu);
-		comStatus = new JTextArea("Com Status: No Attempts Yet");
+		comStatus = new JTextArea("Com Status: No Attempts to Connect Yet");
 		comStatus.setEditable(false);
-		comStatus.setBackground(Color.orange);
+		comStatus.setBackground(Color.BLUE);
+		Font font = new Font("Verdana", Font.BOLD, 14);
+		comStatus.setFont(font);
+		comStatus.setForeground(Color.YELLOW);
 		menuBar.add(comStatus);
+		
+		ImageIcon iconLogo = new ImageIcon(getClass().getResource("/res/MFlyLogo-icon.png"));
+		JLabel iconLabel = new JLabel();
+		iconLabel.setIcon(iconLogo);
+		menuBar.add(iconLabel);
+		
 		java.util.Enumeration<CommPortIdentifier> portEnum = CommPortIdentifier.getPortIdentifiers();
 
 		// check mark: \u2713
@@ -135,8 +166,6 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
     		menuItem.addActionListener(this);
     		comMenu.add(menuItem);
 		} 
-		
-		
 	}
 	
 String getPortTypeName( int portType )
@@ -166,12 +195,8 @@ String getPortTypeName( int portType )
 	    this.setJMenuBar(menuBar);
 		
 //might not need		
-		if(!DEBUG_WITHOUT_RADIO && comPort != null){
-			setUpXBee(true); //first time, print an error
-		}
-		
 
-		Container pane = getContentPane();
+		pane = getContentPane();
 		Calendar cal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy-HH-mm-ss");
         String fileName = "M-FLY_LOG-" + sdf.format(cal.getTime()) + ".txt";
@@ -184,26 +209,54 @@ String getPortTypeName( int portType )
        
         westPanel = new JPanel();
 
+        JCheckBox toggleAutoScroll = new JCheckBox("Auto Scroll: ON");
+		toggleAutoScroll.setSelected(true);
+        
 		altitudeSpeed = new Instruments();
-		dataScroll = new ScrollingDataText();
+		dataScroll = new ScrollingDataText(toggleAutoScroll);
 		
 		JPanel dataScrollPanel = new JPanel(new BorderLayout());
 		dataScrollPanel.add(dataScroll, BorderLayout.CENTER);
 		
+		toggleAutoScroll.addItemListener(new ItemListener(){
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				// TODO Auto-generated method stub
+				if(e.getStateChange() == ItemEvent.DESELECTED){
+					dataScroll.toggleAutoScroll(false);
+					toggleAutoScroll.setText("Auto Scroll: OFF");
+				}else{
+					dataScroll.toggleAutoScroll(true);
+					toggleAutoScroll.setText("Auto Scroll: ON");
+				}
+			}
+		});
+		
 		westPanel.setLayout(new BorderLayout());
 		westPanel.add(altitudeSpeed, BorderLayout.PAGE_START);
+		westPanel.add(toggleAutoScroll, BorderLayout.CENTER);
 		westPanel.add(dataScrollPanel, BorderLayout.PAGE_END);
-	//	westPanel.repaint();
+	
 		
-	/*	JFrame frame = new JFrame(); // frame, you would replace this with the JPanel
-	      frame.add(westPanel);   // add the created opject to your Panel/Frame
-	      frame.setVisible(true); //set the master frame visible
-	      frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
-		*/	
-		
+
 		payloadDrop = new DropStatusPane();
 		
-		JComponent fpvCamera = new JButton("CAMERA");
+		
+		ImageIcon logo = new ImageIcon(getClass().getResource("/res/MFlyLogo.png"));
+		JLabel label = new JLabel();
+		label.setIcon(logo);
+		label.setHorizontalAlignment(JLabel.CENTER);
+		JPanel fpvCamera = new JPanel(new BorderLayout());
+		fpvCamera.add( label, BorderLayout.CENTER );
+		
+		
+/*JFrame frame = new JFrame(); // frame, you would replace this with the JPanel
+	      frame.add(fpvCamera);   // add the created opject to your Panel/Frame
+	      frame.setVisible(true); //set the master frame visible
+	      frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
+		*/
+		
+		
 		//JComponent graph = new JButton("GRAPH");
 		int width = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
 		altChart = new DataChart("Altitude", width,300);
@@ -212,7 +265,6 @@ String getPortTypeName( int portType )
 		
 		//graph.setPreferredSize(new Dimension(200, 300));
 		
-		//pane.add(dataScroll, BorderLayout.LINE_START);
 		pane.add(westPanel, BorderLayout.LINE_START);
 		pane.add(fpvCamera, BorderLayout.CENTER);
 		pane.add(payloadDrop, BorderLayout.LINE_END);
@@ -223,15 +275,9 @@ String getPortTypeName( int portType )
 		this.setVisible(true);
     
         System.out.println("Path : " + file.getAbsolutePath());
-		if(DEBUG_WITHOUT_RADIO){
-		// Simulate XBee messages to test that we interpret them correctly
-		this.testXBeeMessageParsing();
-		}
 	}
     
 	private boolean setUpXBee(boolean firstTry) {
-		
-		
 		
 		if(comPort != null){
 				xbee = new XBeeDevice(comPort, BAUD_RATE);
@@ -245,7 +291,7 @@ String getPortTypeName( int portType )
 				return true;
 			} catch (XBeeException e) {
 			//System.out.println(firstTry);
-				e.printStackTrace();
+				//e.printStackTrace();
 				return false;
 			}
 		}
@@ -294,7 +340,6 @@ String getPortTypeName( int portType )
 		}
 		
 		westPanel.repaint();
-		
 	}
 	
 	//takes the raw "csv" type data string and extracts the relevant element in the string
@@ -329,6 +374,9 @@ System.out.println(stringOutput);//+" "+stringOutput.substring(0, 1)+" "+stringO
 				raw = "B,1.4,"+(int)(Math.random()*2)+","+Math.random()*100+",";
 			}
 			update(raw);
+			System.out.println(raw);
+	//		this.revalidate();
+		
 			try {Thread.sleep(1000);} catch (InterruptedException e){};
 		} // Random Data generator for testing without xbee telemetry
 	}
@@ -342,27 +390,27 @@ System.out.println(stringOutput);//+" "+stringOutput.substring(0, 1)+" "+stringO
 			newName = oldName.substring(0, 1)+" "+oldName.substring(2);
 			currentCom.setText(newName);
 		}
-		
-		currentCom = (JMenuItem)(e.getSource());
-		oldName = currentCom.getText();
-		int endSerial = oldName.indexOf(':');
-		comPort = oldName.substring(2,endSerial-1);
-		System.out.println(comPort);
-		
-		if(!DEBUG_WITHOUT_RADIO){
-	    	if(setUpXBee(false)){
-	    		System.out.println("Set Up Success!");
-	    		comStatus.setText("Com Status: Connected to '"+comPort+"' :: REMEMBER TO UNPLUG AND REPLUG RADIO AFTER EXIT, cuz im lazy and didn't fix it yet.");
-	    		comStatus.setBackground(Color.GREEN);
-	    	}else{
-	    		System.out.println("Could not connect to Com Port: "+comPort);
-	    		comStatus.setText("Com Status: No Connection Established :: REMEMBER TO UNPLUG AND REPLUG RADIO AFTER EXIT, cuz im lazy and didn't fix it yet.");
-	    		comStatus.setBackground(Color.RED);
-	    	}
-		}
-		
-		newName = oldName.substring(0,1)+"\u2713"+oldName.substring(2);
-		currentCom.setText(newName);
+
+			currentCom = (JMenuItem)(e.getSource());
+			oldName = currentCom.getText();
+			int endSerial = oldName.indexOf(':');
+			comPort = oldName.substring(2,endSerial-1);
+			System.out.println(comPort);
+			
+		    	if(setUpXBee(false)){
+		    		System.out.println("Set Up Success!");
+		    		comStatus.setText("Com Status: Connected to '"+comPort+"' :: REMEMBER TO UNPLUG AND REPLUG RADIO AFTER EXIT");
+		    		comStatus.setBackground(Color.GREEN);
+		    		comStatus.setForeground(Color.BLACK);
+		    		
+		    		newName = oldName.substring(0,1)+"\u2713"+oldName.substring(2);
+					currentCom.setText(newName);
+		    	}else{
+		    		System.out.println("Could not connect to Com Port: "+comPort);
+		    		comStatus.setText("Com Status: No Connection Established :: REMEMBER TO UNPLUG AND REPLUG RADIO AFTER EXIT");
+		    		comStatus.setBackground(Color.RED);
+		    		comStatus.setForeground(Color.BLACK);
+		    	}
 	}
 	
 	//needed functions for WindowListener. Only here to close the writer when the X is clicked

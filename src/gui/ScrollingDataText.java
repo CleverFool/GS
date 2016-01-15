@@ -3,8 +3,13 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
@@ -23,8 +28,9 @@ public class ScrollingDataText extends JScrollPane{
 
 	private String data="MFly Data Log";
 	private JTextArea textArea;
+	private boolean autoScroll = true;
 	
-	public ScrollingDataText(){
+	public ScrollingDataText(JCheckBox autoScrollIndicator){
 
 			textArea = new JTextArea(data);
 			textArea.setFont(new Font("Courier", Font.PLAIN, 11));
@@ -32,10 +38,38 @@ public class ScrollingDataText extends JScrollPane{
 			textArea.setWrapStyleWord(true);
 			textArea.setEditable(false);
 			
+			
 			setViewportView(textArea);
 			setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+			setPreferredSize(new Dimension(250, 200));
 			
+			getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {  
+		        public void adjustmentValueChanged(AdjustmentEvent e) { 
+		        	if(autoScroll){
+		        		e.getAdjustable().setValue(e.getAdjustable().getMaximum());
+		        	}
+		        }
+		    });
+			
+			addMouseWheelListener(new MouseWheelListener(){
+				@Override
+				public void mouseWheelMoved(MouseWheelEvent e) {
+					// TODO Auto-generated method stub
+					autoScroll = false;
+					
+					if(autoScrollIndicator != null){
+					autoScrollIndicator.setSelected(false);
+					autoScrollIndicator.setText("Auto Scroll: OFF");
+					}
+				}
+			});
+				
+			
+	}
+	
+	public void toggleAutoScroll(boolean mode){
+		autoScroll = mode;
 	}
 	
 	public void update(String newData){
@@ -45,7 +79,7 @@ public class ScrollingDataText extends JScrollPane{
 	
 	//for use during individual debugging of scrolling data text area
 	public static void main(String[] args){
-		ScrollingDataText d = new ScrollingDataText();
+		ScrollingDataText d = new ScrollingDataText(null);
 
 		JFrame frame = new JFrame(); // frame, you would replace this with the JPanel
 	      frame.add(d);   // add the created opject to your Panel/Frame
