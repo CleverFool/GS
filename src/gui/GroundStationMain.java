@@ -26,6 +26,9 @@ import java.util.Random;
 
 import javax.swing.*;
 
+import org.jfree.chart.plot.CategoryPlot;
+
+import com.digi.xbee.api.XBee;
 import com.digi.xbee.api.XBeeDevice;
 import com.digi.xbee.api.exceptions.XBeeException;
 import com.digi.xbee.api.listeners.IDataReceiveListener;
@@ -37,7 +40,7 @@ import gnu.io.CommPortIdentifier;
 public class GroundStationMain extends JFrame implements IDataReceiveListener, WindowListener, ActionListener{
 
 	//Debug boolean
-	private static final boolean DEBUG_WITHOUT_RADIO = false;
+	private static final boolean DEBUG_WITHOUT_RADIO = true;
 	
 	// Constants
 	private static final long serialVersionUID = -5652170290197609712L;
@@ -60,6 +63,8 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 	private String comPort;
 	
 	// Member objects for each of the panels
+	private JPanel westPanel;
+	private ScrollingDataText dataScroll;
 	private DataChart altChart;
 	private Instruments altitudeSpeed;
 	private DropStatusPane payloadDrop;
@@ -88,7 +93,8 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		super.setExtendedState(super.getExtendedState() | JFrame.MAXIMIZED_BOTH);
 		// Exit the program when you close the window.
 		super.setDefaultCloseOperation(EXIT_ON_CLOSE);       
-		
+	
+		//move this over to window closing event 
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -112,9 +118,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 		menuBar = new JMenuBar();
 		comMenu = new JMenu("Select COM Port");
 		menuBar.add(comMenu);
-		
-
-		
+				
 		java.util.Enumeration<CommPortIdentifier> portEnum = CommPortIdentifier.getPortIdentifiers();
 
 		// check mark: \u2713
@@ -150,30 +154,45 @@ String getPortTypeName( int portType )
 	    }
 
 	private void initGui() {
+		startTime = System.nanoTime();
 		setSize(300, 200);
 		setTitle("M-Fly Ground Station");
 		
 	    this.setJMenuBar(menuBar);
 		
-		
+//might not need		
 		if(!DEBUG_WITHOUT_RADIO && comPort != null){
-			
 			setUpXBee(true); //first time, print an error
 		}
 		
+
 		Container pane = getContentPane();
 		Calendar cal = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("HH-mm-ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy-HH-mm-ss");
         String fileName = "M-FLY_LOG-" + sdf.format(cal.getTime()) + ".txt";
-        try {out = new PrintWriter(fileName,"UTF-8");} catch (FileNotFoundException e) {} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
+        try {out = new PrintWriter(fileName,"UTF-8");} catch (FileNotFoundException e) 
+        {} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-        out.print("Hello World");
+        out.print("=== START OF LOG ======"+ "\n");
         File file = new File(fileName);
-        
+       
+        westPanel = new JPanel();
 
 		altitudeSpeed = new Instruments();
+		dataScroll = new ScrollingDataText();
+		
+		westPanel.setLayout(new BorderLayout());
+		westPanel.add(altitudeSpeed, BorderLayout.PAGE_START);
+		westPanel.add(dataScroll, BorderLayout.PAGE_END);
+		
+		JFrame frame = new JFrame(); // frame, you would replace this with the JPanel
+	      frame.add(westPanel);   // add the created opject to your Panel/Frame
+	      frame.setVisible(true); //set the master frame visible
+	      frame.setSize(400, 300); //set your size, should be slightly larger than construcor size
+	      frame.pack();
+			
+		
 		payloadDrop = new DropStatusPane();
 		
 		JComponent fpvCamera = new JButton("CAMERA");
@@ -185,7 +204,7 @@ String getPortTypeName( int portType )
 		
 		//graph.setPreferredSize(new Dimension(200, 300));
 		
-		pane.add(altitudeSpeed, BorderLayout.LINE_START);
+		pane.add(westPanel, BorderLayout.LINE_START);
 		pane.add(fpvCamera, BorderLayout.CENTER);
 		pane.add(payloadDrop, BorderLayout.LINE_END);
 		pane.add(altChart, BorderLayout.PAGE_END);
@@ -225,22 +244,27 @@ String getPortTypeName( int portType )
 		return false;
 	}
 	public void update(String newData) {
-		
 		double time = (System.nanoTime()-startTime)/1000000000.0;
+		
 		if (newData.substring(0,1).equals("A")) {
 			String altStr = getRelevantData(newData, ALTITUDE);
 //String timeStr = getRelevantData(newData, TIME);
+			out.print("ALT: " + altStr + " ");
+			
 			String airSpeedStr = getRelevantData(newData, AIRSPEED);
+
+			out.print("AIRSPEED: " + airSpeedStr + "\n");
 			double alt = Double.parseDouble(altStr);
 //double time = Double.parseDouble(timeStr);
 			double airSpeed = Double.parseDouble(airSpeedStr);
 			Point2D.Double p = new Point2D.Double((double)time, alt);
 			altChart.update(p); //Update Graphs
 			//assuming alt is in meters right now
-			altitudeSpeed.update((int) (alt*3.28), (float)airSpeed); //Update Numbers
+			altitudeSpeed.update((int) (alt), (float)airSpeed); //Update Numbers
 
 		}else if(newData.charAt(0) == 'B'){ //Update Drop Status
-			System.out.println("Drop Recieved: "+newData);
+			out.print("Drop Recieved: "+ newData + " ");
+			
 			String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
 //String timeStr = getRelevantData(newData, TIME);
@@ -248,7 +272,7 @@ String getPortTypeName( int portType )
 			int numDropped = Integer.parseInt(numDropStr);
 //double time = Double.parseDouble(timeStr);
 			Point2D.Double p = new Point2D.Double((double)time, alt);
-			altChart.update(p); //Update Graphs
+			altChart.update(p, true); //Update Graphs
 			payloadDrop.payloadDropped((long)time,(long)alt, numDropped);
 			
 		}
@@ -279,6 +303,7 @@ System.out.println(stringOutput);//+" "+stringOutput.substring(0, 1)+" "+stringO
 		update(stringOutput);
 		}
 	}
+	
 	public void testXBeeMessageParsing() {
 		for(int i = 0; i<60; i++) {
 			String raw = "A,MFLY,"+(Math.random()+i)+","+Math.random()*100+",,,,"+Math.random()*20+",";
@@ -322,7 +347,10 @@ System.out.println(stringOutput);//+" "+stringOutput.substring(0, 1)+" "+stringO
 	@Override
 	public void windowActivated(WindowEvent arg0) {}
 	public void windowClosed(WindowEvent arg0) {}
-	public void windowClosing(WindowEvent arg0) {out.close(); System.exit(0);}
+	public void windowClosing(WindowEvent arg0) {
+		out.close(); 
+		System.exit(0);
+		}
 	public void windowDeactivated(WindowEvent arg0) {}
 	public void windowDeiconified(WindowEvent e) {}
 	public void windowIconified(WindowEvent e) {}

@@ -13,6 +13,11 @@ import javax.swing.JPanel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.Axis;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -32,6 +37,7 @@ public class DataChart extends JPanel
 	private XYPlot plot;
 	private XYLineAndShapeRenderer renderer;
 	private XYSeries dataPoints;
+	private XYSeries dropPoints;
 	private XYSeriesCollection dataSet;
 	/**
 	 * Constructs a DataChart object, initially containing no points
@@ -42,9 +48,11 @@ public class DataChart extends JPanel
 	
    public DataChart(String title, int xSize, int ySize)
    {
-      dataPoints = new XYSeries( "Altitude" );    
+      dataPoints = new XYSeries( "Altitude" );   
+      dropPoints = new XYSeries( "Dropped" );   
       dataSet = new XYSeriesCollection( );
       dataSet.addSeries(dataPoints);
+      dataSet.addSeries(dropPoints);
       chart = ChartFactory.createXYLineChart(
          title, "Time (s)", "Altitude (m)", dataSet,
          PlotOrientation.VERTICAL ,true , true , false);
@@ -56,15 +64,34 @@ public class DataChart extends JPanel
       renderer = new XYLineAndShapeRenderer( );
       renderer.setSeriesPaint(0, Color.RED );
       renderer.setSeriesStroke(0, new BasicStroke(4.0f));
+      renderer.setSeriesPaint(1, Color.BLUE );
+      renderer.setSeriesStroke(1, new BasicStroke(4.0f));
       plot.setRenderer( renderer ); 
+     ((XYPlot) chart.getPlot()).getDomainAxis().setUpperBound(30);
 
    }
    /**
     * Updates the chart with the given input
     * @param inputPoint - The Point to be added to the graph (x,y)
     */
-   public void update (Point2D.Double inputPoint) {
+   public void update (Point2D.Double inputPoint, boolean justDropped) {
+	   if (inputPoint.getX() > 30) {
+		   int scaleAmount = (int) (inputPoint.getX() - 30);
+		   ((XYPlot) chart.getPlot()).getDomainAxis().setUpperBound(30 + scaleAmount);
+		   ((XYPlot) chart.getPlot()).getDomainAxis().setLowerBound(scaleAmount);
+	   }
+	   
 	   dataPoints.add(inputPoint.getX(), inputPoint.getY());
+	   if (justDropped) {
+		      renderer.setSeriesPaint(0, Color.BLUE );
+		      dataPoints.add(inputPoint.getX(), inputPoint.getY());
+		      dataPoints.add(inputPoint.getX() + 1, inputPoint.getY());
+		      renderer.setSeriesPaint(0, Color.RED );
+	   } else {dataPoints.add(inputPoint.getX(), inputPoint.getY());}
+   }
+   
+   public void update (Point2D.Double inputPoint) {
+	   update(inputPoint, false);
    }
   /*
    * Example of how to use the object
