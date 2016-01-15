@@ -50,7 +50,7 @@ import gnu.io.CommPortIdentifier;
 public class GroundStationMain extends JFrame implements IDataReceiveListener, WindowListener, ActionListener{
 
 	//Debug boolean
-	private static final boolean DEBUG_WITHOUT_RADIO = false;
+	private static final boolean DEBUG_WITHOUT_RADIO = true;
 	
 	// Constants
 	private static final long serialVersionUID = -5652170290197609712L;
@@ -99,7 +99,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, W
 	 * Default constructor.
 	 */
 	public GroundStationMain() {
-		startTime = System.nanoTime();
+		
 		// Set the window to take maximize to fill the whole screen.
 		super.setExtendedState(super.getExtendedState() | JFrame.MAXIMIZED_BOTH);
 		// Exit the program when you close the window.
@@ -275,6 +275,7 @@ String getPortTypeName( int portType )
 		this.setVisible(true);
     
         System.out.println("Path : " + file.getAbsolutePath());
+        startTime = System.nanoTime();
 	}
     
 	private boolean setUpXBee(boolean firstTry) {
@@ -306,17 +307,25 @@ String getPortTypeName( int portType )
 		if (newData.substring(0,1).equals("A")) {
 			String altStr = getRelevantData(newData, ALTITUDE);
 //String timeStr = getRelevantData(newData, TIME);
+			out.print("TIME: "+time+" ");
 			out.print("ALT: " + altStr + " ");
-			dataScroll.update("ALT: "+altStr+"; ");
+			
 			
 			String airSpeedStr = getRelevantData(newData, AIRSPEED);
 
 			out.print("AIRSPEED: " + airSpeedStr + "\n");
-			dataScroll.update("AIRSPEED: "+airSpeedStr+". ");
+			
 			
 			double alt = Double.parseDouble(altStr);
 //double time = Double.parseDouble(timeStr);
 			double airSpeed = Double.parseDouble(airSpeedStr);
+			
+			System.out.println(airSpeed);
+			
+			dataScroll.update("TIME:"+((double)Math.round(time * 1000d) / 1000)+"; ");
+			dataScroll.update("ALT:"+((double)Math.round(alt * 1000d) / 1000)+"; ");
+			dataScroll.update("AIRSPEED:"+((double)Math.round(airSpeed * 1000d) / 1000)+"\n----------\n");
+			
 			Point2D.Double p = new Point2D.Double((double)time, alt);
 			altChart.update(p); //Update Graphs
 			//assuming alt is in meters right now
@@ -324,15 +333,24 @@ String getPortTypeName( int portType )
 			
 			
 		}else if(newData.charAt(0) == 'B'){ //Update Drop Status
-			out.print("Drop Recieved: "+ newData + " ");
-			dataScroll.update("Drop Recieved: "+newData+" ");
+			out.print("DROP RECIEVED - ");
 			
 			String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
+			out.print("TIME: "+time+"; ");
+			out.print("ALT: "+altStr+"; ");
+			out.print("NUM_DROPPED"+numDropStr+"\n");
 //String timeStr = getRelevantData(newData, TIME);
 			double alt = Double.parseDouble(altStr);
 			int numDropped = Integer.parseInt(numDropStr);
 //double time = Double.parseDouble(timeStr);
+			
+			dataScroll.update("DROP RECIEVED - TIME: "+((double)(Math.round(time*1000d)/1000))+
+					"; ALT: "+((double)(Math.round(alt * 1000d)/1000))+
+					"; NUM_DROPPED: "+numDropped);
+			
+			dataScroll.update("\n----------\n");
+			
 			Point2D.Double p = new Point2D.Double((double)time, alt);
 			altChart.update(p, true); //Update Graphs
 			payloadDrop.payloadDropped((long)time,(long)alt, numDropped);
@@ -368,7 +386,7 @@ System.out.println(stringOutput);//+" "+stringOutput.substring(0, 1)+" "+stringO
 	}
 	
 	public void testXBeeMessageParsing() {
-		for(int i = 0; i<60; i++) {
+		for(int i = 0; i<120; i++) {
 			String raw = "A,MFLY,"+(Math.random()+i)+","+Math.random()*100+",,,,"+Math.random()*20+",";
 			if (i%10 == 9) {
 				raw = "B,1.4,"+(int)(Math.random()*2)+","+Math.random()*100+",";
@@ -377,7 +395,7 @@ System.out.println(stringOutput);//+" "+stringOutput.substring(0, 1)+" "+stringO
 			System.out.println(raw);
 	//		this.revalidate();
 		
-			try {Thread.sleep(1000);} catch (InterruptedException e){};
+			try {Thread.sleep(500);} catch (InterruptedException e){};
 		} // Random Data generator for testing without xbee telemetry
 	}
 
