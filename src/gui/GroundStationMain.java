@@ -93,9 +93,18 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 	    	
 	    	try{
 	    		xbee.close();
-	    		out.close();
-	    	}catch(Exception e){}
+	    	}catch(Exception e){
+	    		e.printStackTrace();
+	    	}
+	    	
+	    	try{
+	       		out.close();
+	    	}catch(Exception e){
+	    		e.printStackTrace();
+	    	}
+	    	
 	    		System.out.println("The Gui has been exited.");
+	    		
 	    	}
 		});
 		
@@ -187,6 +196,7 @@ String getPortTypeName( int portType )
 			e.printStackTrace();
 		}
         out.print("=== START OF LOG ======"+ "\n");
+        out.print("TYPE, ALT, AIRSPEED, NUM_DROPPED\n");
         File file = new File(fileName);
        
         westPanel = new JPanel();
@@ -288,13 +298,13 @@ String getPortTypeName( int portType )
 		if (newData.substring(0,1).equals("A")) {
 			String altStr = getRelevantData(newData, ALTITUDE);
 //String timeStr = getRelevantData(newData, TIME);
-			out.print("TIME: "+time+" ");
-			out.print("ALT: " + altStr + " ");
+			out.print("A,"+time);
+			out.print("," + altStr + ",");
 			
 			
 			String airSpeedStr = getRelevantData(newData, AIRSPEED);
 
-			out.print("AIRSPEED: " + airSpeedStr + "\n");
+			out.print(airSpeedStr + ",0\n");
 			
 			
 			double alt = Double.parseDouble(altStr);
@@ -314,13 +324,13 @@ String getPortTypeName( int portType )
 			
 			
 		}else if(newData.charAt(0) == 'B'){ //Update Drop Status
-			out.print("DROP RECIEVED - ");
+			out.print("B,");
 			
 			String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
-			out.print("TIME: "+time+"; ");
-			out.print("ALT: "+altStr+"; ");
-			out.print("NUM_DROPPED"+numDropStr+"\n");
+			out.print(time+",");
+			out.print(altStr+",-999,");
+			out.print(numDropStr+"\n");
 //String timeStr = getRelevantData(newData, TIME);
 			double alt = Double.parseDouble(altStr);
 			int numDropped = Integer.parseInt(numDropStr);
