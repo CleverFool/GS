@@ -90,15 +90,13 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-		    	try{
-		    		xbee.close();
-		    	} catch(Exception e) {
-		    		// Do Nothing
-		    	}
-		    	
-		    	out.close();
-		    	System.out.println("The Gui has been exited.");
-		    }
+	    	
+	    	try{
+	    		xbee.close();
+	    		out.close();
+	    	}catch(Exception e){}
+	    		System.out.println("The Gui has been exited.");
+	    	}
 		});
 		
 		detectComPorts();
@@ -143,7 +141,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 
 		// check mark: \u2713
 		
-		while (portEnum.hasMoreElements()) {
+		while( portEnum.hasMoreElements()){
 			CommPortIdentifier portIdentifier = portEnum.nextElement();
             String portName = portIdentifier.getName()  +  " : " +  getPortTypeName(portIdentifier.getPortType());
     		JMenuItem menuItem = new JMenuItem("  "+portName, KeyEvent.VK_T);
@@ -152,7 +150,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 		} 
 	}
 	
-	String getPortTypeName( int portType )
+String getPortTypeName( int portType )
 	    {
 	        switch ( portType )
 	        {
@@ -178,21 +176,16 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 		
 	    this.setJMenuBar(menuBar);
 		
-    	//might not need		
+//might not need		
 
 		pane = getContentPane();
 		Calendar cal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy-HH-mm-ss");
         String fileName = "M-FLY_LOG-" + sdf.format(cal.getTime()) + ".txt";
-        
-        try {
-        	out = new PrintWriter(fileName,"UTF-8");
-        } catch (FileNotFoundException e) {
-        	// Do Nothing
-        } catch (UnsupportedEncodingException e) {
+        try {out = new PrintWriter(fileName,"UTF-8");} catch (FileNotFoundException e) 
+        {} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-        
         out.print("=== START OF LOG ======"+ "\n");
         File file = new File(fileName);
        
@@ -239,7 +232,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 		fpvCamera.add( label, BorderLayout.CENTER );
 		
 		
-		/*JFrame frame = new JFrame(); // frame, you would replace this with the JPanel
+/*JFrame frame = new JFrame(); // frame, you would replace this with the JPanel
 	      frame.add(fpvCamera);   // add the created opject to your Panel/Frame
 	      frame.setVisible(true); //set the master frame visible
 	      frame.setExtendedState(frame.getExtendedState() | JFrame.MAXIMIZED_BOTH);
@@ -267,16 +260,19 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 	}
     
 	private boolean setUpXBee(boolean firstTry) {
+		
 		if(comPort != null){
 				xbee = new XBeeDevice(comPort, BAUD_RATE);
 				if (xbee.isOpen()) return true;
+		
+			
 			try {
 				xbee.open();
 				xbee.addDataListener(this);
 				if (!firstTry) System.out.println("XBee Connected");
 				return true;
 			} catch (XBeeException e) {
-				//System.out.println(firstTry);
+			//System.out.println(firstTry);
 				//e.printStackTrace();
 				return false;
 			}
@@ -284,11 +280,10 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 		
 		return false;
 	}
-	
 	public void update(String newData) {
-		double time = (System.nanoTime() - startTime) / 1000000000.0;
+		double time = (System.nanoTime()-startTime)/1000000000.0;
 		
-		//TODO: Change 'out' format to CSV
+	
 		
 		if (newData.substring(0,1).equals("A")) {
 			String altStr = getRelevantData(newData, ALTITUDE);
@@ -318,9 +313,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			altitudeSpeed.update((int) (alt), (float)airSpeed); //Update Numbers
 			
 			
-		} else if(newData.charAt(0) == 'B') {
-			//Update Drop Status
-			
+		}else if(newData.charAt(0) == 'B'){ //Update Drop Status
 			out.print("DROP RECIEVED - ");
 			
 			String altStr = getRelevantData(newData, B_ALTITUDE);
@@ -341,7 +334,8 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			
 			Point2D.Double p = new Point2D.Double((double)time, alt);
 			altChart.update(p, true); //Update Graphs
-			payloadDrop.payloadDropped((long)time, (long)alt, numDropped);
+			payloadDrop.payloadDropped((long)time,(long)alt, numDropped);
+			
 		}
 		
 		westPanel.repaint();
@@ -351,83 +345,71 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 	public String getRelevantData(String rawData, int commaNumber){
 		int startCommaIndex = 0, endCommaIndex;
 		int commaCount = 0;
-		
-		while (commaCount < commaNumber) {
-			startCommaIndex = rawData.indexOf(',', startCommaIndex + 1);
+		while(commaCount < commaNumber){
+			startCommaIndex = rawData.indexOf(',',startCommaIndex+1);
 			commaCount++;
 		}
-		
-		endCommaIndex = rawData.indexOf(',', startCommaIndex+1);
-		String relevantData = rawData.substring(startCommaIndex + 1, endCommaIndex);
-		
+		endCommaIndex = rawData.indexOf(',',startCommaIndex+1);
+		String relevantData = rawData.substring(startCommaIndex+1 ,endCommaIndex);
 		return relevantData;
 	}
  
-	//TODO: Remember to implement address-specific listening
-	
-	// Method for when data is received from the XBee
+	//Remember to implement address-specific listening
 	@Override
-	public void dataReceived(XBeeMessage message) {
+	public void dataReceived(XBeeMessage message) { //Method for when data is recieved
 		XBee64BitAddress address = message.getDevice().get64BitAddress();
-		
-		// Check if data is from the correct address
-		if (address.toString().equals(TRANSMITTER_ADDRESS)) {
-			String stringOutput = message.getDataString();
-			System.out.println(stringOutput);	//+" "+stringOutput.substring(0, 1)+" "+stringOutput.substring(0, 1).equals("B"));
-			update(stringOutput);
+//System.out.println(address.toString()=="0013A20040E6D613");
+		if (address.toString().equals(TRANSMITTER_ADDRESS)){//check if data is from the correct address
+		String stringOutput = message.getDataString();
+System.out.println(stringOutput);//+" "+stringOutput.substring(0, 1)+" "+stringOutput.substring(0, 1).equals("B"));
+		update(stringOutput);
 		}
 	}
 	
 	public void testXBeeMessageParsing() {
 		for(int i = 0; i<120; i++) {
 			String raw = "A,MFLY,"+(Math.random()+i)+","+Math.random()*100+",,,,"+Math.random()*20+",";
-			
 			if (i%10 == 9) {
 				raw = "B,1.4,"+(int)(Math.random()*2)+","+Math.random()*100+",";
 			}
-			
 			update(raw);
 			System.out.println(raw);
 	//		this.revalidate();
 		
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				// Do Nothing
-			};
-			
+			try {Thread.sleep(500);} catch (InterruptedException e){};
 		} // Random Data generator for testing without xbee telemetry
 	}
 
-	public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(ActionEvent e){
+		
 		String oldName, newName;
 		
-		if (currentCom != null) {
+		if(currentCom != null){
 			oldName = currentCom.getText();
 			newName = oldName.substring(0, 1)+" "+oldName.substring(2);
 			currentCom.setText(newName);
 		}
 
-		currentCom = (JMenuItem)(e.getSource());
-		oldName = currentCom.getText();
-		int endSerial = oldName.indexOf(':');
-		comPort = oldName.substring(2,endSerial-1);
-		System.out.println(comPort);
-		
-    	if (setUpXBee(false)) {
-    		System.out.println("Set Up Success!");
-    		comStatus.setText("Com Status: Connected to '"+comPort+"' :: REMEMBER TO UNPLUG AND REPLUG RADIO AFTER EXIT");
-    		comStatus.setBackground(Color.GREEN);
-    		comStatus.setForeground(Color.BLACK);
-    		
-    		newName = oldName.substring(0,1)+"\u2713"+oldName.substring(2);
-			currentCom.setText(newName);
-    	} else {
-    		System.out.println("Could not connect to Com Port: "+comPort);
-    		comStatus.setText("Com Status: No Connection Established :: REMEMBER TO UNPLUG AND REPLUG RADIO AFTER EXIT");
-    		comStatus.setBackground(Color.RED);
-    		comStatus.setForeground(Color.BLACK);
-    	}
+			currentCom = (JMenuItem)(e.getSource());
+			oldName = currentCom.getText();
+			int endSerial = oldName.indexOf(':');
+			comPort = oldName.substring(2,endSerial-1);
+			System.out.println(comPort);
+			
+		    	if(setUpXBee(false)){
+		    		System.out.println("Set Up Success!");
+		    		comStatus.setText("Com Status: Connected to '"+comPort+"' :: REMEMBER TO UNPLUG AND REPLUG RADIO AFTER EXIT");
+		    		comStatus.setBackground(Color.GREEN);
+		    		comStatus.setForeground(Color.BLACK);
+		    		
+		    		newName = oldName.substring(0,1)+"\u2713"+oldName.substring(2);
+					currentCom.setText(newName);
+		    	}else{
+		    		System.out.println("Could not connect to Com Port: "+comPort);
+		    		comStatus.setText("Com Status: No Connection Established :: REMEMBER TO UNPLUG AND REPLUG RADIO AFTER EXIT");
+		    		comStatus.setBackground(Color.RED);
+		    		comStatus.setForeground(Color.BLACK);
+		    	}
 	}
 }
 		
