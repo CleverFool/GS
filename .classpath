@@ -11,10 +11,10 @@
 	<classpathentry exported="true" kind="lib" path="libs/xbjlib-1.1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/jcommon-1.0.23.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/jfreechart-1.0.19.jar"/>
-	<classpathentry kind="lib" path="/Users/Justin/Desktop/opencv-3.1.0/build/bin/opencv-310.jar"/>
-	<classpathentry kind="lib" path="/Users/Justin/Desktop/Fall_2015/MFly/Code/Java/GS/libs/rxtx-2.2.jar">
+	<classpathentry exported="true" kind="lib" path="/Users/Justin/Desktop/opencv-3.1.0/build/bin/opencv-310.jar"/>
+	<classpathentry exported="true" kind="lib" path="/Users/Justin/Desktop/Fall_2015/MFly/Code/Java/GS/libs/rxtx-2.2.jar">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/Users/Justin/Desktop/Fall_2015/MFly/Code/Java/GS/libs/native/Mac_OS_X"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="GS/libs/native/Mac_OS_X"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
