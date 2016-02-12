@@ -56,7 +56,7 @@ public class DataChart extends JPanel
       dataSet.addSeries(dropPoints);
       dataSet.addSeries(dataPoints);
       chart = ChartFactory.createXYLineChart(
-         title, "Time (s)", "Altitude (m)", dataSet,
+         title, "Time (s)", "Altitude (ft)", dataSet,
          PlotOrientation.VERTICAL ,true , true , false);
       chartPanel = new ChartPanel(chart);
  
