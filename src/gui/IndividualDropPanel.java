@@ -3,7 +3,6 @@ package gui;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
-import java.awt.TextField;
 import java.awt.Component;
 import java.awt.Font;
 import javax.swing.JLabel;
@@ -11,6 +10,8 @@ import javax.swing.BoxLayout;
 import java.awt.Color;
 
 public class IndividualDropPanel extends JPanel {
+	private static final long serialVersionUID = 1L;
+	
 	String dropStatus = "Unreleased";
 	int dropNumber;
 
@@ -34,6 +35,8 @@ public class IndividualDropPanel extends JPanel {
 		
 
 		dropStatusDisplay = new JTextArea(dropStatus) {
+			private static final long serialVersionUID = 1L;
+
 			// Prevent this from gaining focus. This is read-only so we don't want it 
 			// grabbing focus from other objects.
 			public boolean isFocusable() {

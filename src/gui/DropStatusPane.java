@@ -12,6 +12,8 @@ import javax.swing.JLabel;
  */
 public class DropStatusPane extends JPanel {
 
+	private static final long serialVersionUID = 1L;
+	
 	JLabel title;
 	boolean dropToUpdate = false;
 	IndividualDropPanel[] drops;

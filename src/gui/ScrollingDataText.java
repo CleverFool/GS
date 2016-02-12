@@ -1,7 +1,5 @@
 package gui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.AdjustmentEvent;
@@ -9,18 +7,11 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
-import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.ScrollPaneLayout;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Highlighter;
-import javax.swing.text.Highlighter.HighlightPainter;
+//import javax.swing.text.Highlighter.HighlightPainter;
 
 /*
  * Justin Fu
@@ -31,10 +22,12 @@ import javax.swing.text.Highlighter.HighlightPainter;
 
 public class ScrollingDataText extends JScrollPane{
 
+	private static final long serialVersionUID = 1L;
+	
 	private String data="MFly Data Log";
 	private JTextArea textArea;
 	private boolean autoScroll = true;
-	private HighlightPainter highlightP;
+	//private HighlightPainter highlightP;
 	
 	public ScrollingDataText(JCheckBox autoScrollIndicator){
 

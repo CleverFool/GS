@@ -3,7 +3,6 @@ package gui;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.util.Random;
@@ -14,11 +13,6 @@ import javax.swing.JPanel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.Axis;
-import org.jfree.chart.axis.CategoryAxis;
-import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -34,6 +28,8 @@ import org.jfree.util.ShapeUtilities;
  */
 public class DataChart extends JPanel 
 {
+	private static final long serialVersionUID = 1L;
+	
 	private JFreeChart chart;
 	private ChartPanel chartPanel;
 	private XYPlot plot;

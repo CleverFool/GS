@@ -37,7 +37,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 	private static final long serialVersionUID = -5652170290197609712L;
 
 	// Information for initializing Xbees
-	private static final String COM_PORT = "/dev/tty.usbserial-DA01OPLP"; // PLACEHOLDER
+	//private static final String COM_PORT = "/dev/tty.usbserial-DA01OPLP"; // PLACEHOLDER
 	private static final int BAUD_RATE = 9600; // PLACEHOLDER
 	
 	private static final String TRANSMITTER_ADDRESS = "0013A20040A5422E";
@@ -67,7 +67,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 	private long startTime; // start time of the program used for calculating
 							// time elapsed
 	private PrintWriter out;
-	private int messageNumber = 0; // FIX SO IT'S NOT HARD CODED
+	//private int messageNumber = 0; // FIX SO IT'S NOT HARD CODED
 
 	// Menu Bar Variables
 	private JMenuBar menuBar;
@@ -147,6 +147,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 		iconLabel.setIcon(iconLogo);
 		menuBar.add(iconLabel);
 
+		@SuppressWarnings("unchecked")
 		java.util.Enumeration<CommPortIdentifier> portEnum = CommPortIdentifier.getPortIdentifiers();
 
 		// check mark: \u2713
