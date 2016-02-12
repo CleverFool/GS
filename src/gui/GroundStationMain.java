@@ -39,7 +39,9 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 	// Information for initializing Xbees
 	private static final String COM_PORT = "/dev/tty.usbserial-DA01OPLP"; // PLACEHOLDER
 	private static final int BAUD_RATE = 9600; // PLACEHOLDER
-	private static final String TRANSMITTER_ADDRESS = "0013A20040E6D613";
+	
+	private static final String TRANSMITTER_ADDRESS = "0013A20040A5422E";
+	// Old Address: "0013A20040E6D613";
 
 	// Location of specific telemetry in XBee message mapped out in English
 	// instead of numbers
@@ -369,7 +371,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 		XBee64BitAddress address = message.getDevice().get64BitAddress();
 		
 		// System.out.println(address.toString()=="0013A20040E6D613");
-		if (address.toString().equals(TRANSMITTER_ADDRESS) || true) {
+		if (address.toString().equals(TRANSMITTER_ADDRESS)) {
 			// check if data is from the correct address
 			String stringOutput = message.getDataString();
 			System.out.println(stringOutput);
@@ -399,6 +401,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
+				// Do Nothing
 			}
 			;
 		}
