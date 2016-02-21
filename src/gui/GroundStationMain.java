@@ -332,6 +332,8 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 
 		} else if (newData.charAt(0) == 'B') { // Update Drop Status
 			out.print("B,");
+			
+			// TODO: Work for multple 'B' message recieving
 
 			String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
