@@ -67,6 +67,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 	private long startTime; // start time of the program used for calculating
 							// time elapsed
 	private PrintWriter out;
+	private PrintWriter xbeeLogOut;
 	//private int messageNumber = 0; // FIX SO IT'S NOT HARD CODED
 
 	// Menu Bar Variables
@@ -96,13 +97,15 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			public void windowClosing(java.awt.event.WindowEvent windowEvent) {
 
 				try {
-					xbee.close();
+					if (xbee != null)
+						xbee.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 
 				try {
 					out.close();
+					xbeeLogOut.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -191,16 +194,18 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy-HH-mm-ss");
 		String fileName = "M-FLY_LOG-" + sdf.format(cal.getTime()) + ".txt";
+		String xbeeFileName = "Xbee " + fileName;
 		
 		try {
 			out = new PrintWriter(fileName, "UTF-8");
+			xbeeLogOut = new PrintWriter(xbeeFileName, "UTF-8");
 		} catch (FileNotFoundException e) {
 			// Do Nothing
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
 		out.print("=== START OF LOG ======" + "\n");
-		out.print("TYPE, ALT, AIRSPEED, NUM_DROPPED\n");
+		out.print("TYPE, TIME, ALT, AIRSPEED, NUM_DROPPED\n");
 		File file = new File(fileName);
 
 		westPanel = new JPanel();
@@ -217,7 +222,6 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 		toggleAutoScroll.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				// TODO Auto-generated method stub
 				if (e.getStateChange() == ItemEvent.DESELECTED) {
 					dataScroll.toggleAutoScroll(false);
 					toggleAutoScroll.setText("Auto Scroll: OFF");
@@ -293,6 +297,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 
 	public void update(String newData) {
 		double time = (System.nanoTime() - startTime) / 1000000000.0;
+		xbeeLogOut.println(newData);
 
 		if (newData.substring(0, 1).equals("A")) {
 			String altStr = getRelevantData(newData, ALTITUDE);

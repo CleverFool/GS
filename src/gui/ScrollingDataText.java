@@ -54,7 +54,6 @@ public class ScrollingDataText extends JScrollPane{
 			addMouseWheelListener(new MouseWheelListener(){
 				@Override
 				public void mouseWheelMoved(MouseWheelEvent e) {
-					// TODO Auto-generated method stub
 					autoScroll = false;
 					
 					if(autoScrollIndicator != null){
