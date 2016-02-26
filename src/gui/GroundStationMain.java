@@ -53,6 +53,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 	// Message type: B
 	private static final int B_ALTITUDE = 3;
 	private static final int NUM_DROPPED = 2;
+	private int lastNumDropped = -1;
 
 	private String comPort;
 
@@ -317,8 +318,6 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			// double time = Double.parseDouble(timeStr);
 			double airSpeed = Double.parseDouble(airSpeedStr);
 
-			System.out.println(airSpeed);
-
 			dataScroll.update("TIME:" + ((double) Math.round(time * 1000d) / 1000) + "; ");
 			dataScroll.update("ALT:" + ((double) Math.round(alt * 1000d) / 1000) + "; ");
 			dataScroll.update("AIRSPEED:" + ((double) Math.round(airSpeed * 1000d) / 1000) + "\n----------\n");
@@ -330,29 +329,42 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			// Update Numbers
 			altitudeSpeed.update((int) (alt), (float) airSpeed);
 
-		} else if (newData.charAt(0) == 'B') { // Update Drop Status
-			out.print("B,");
-			
+		}
+		
+		System.out.println(newData);
+		System.out.println(newData.charAt(0));
+		
+		if (newData.substring(0, 1).equals("B")) { // Update Drop Status
+			//TODO: Test multiple B message values
 			// TODO: Work for multple 'B' message recieving
 
 			String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
+			double alt = Double.parseDouble(altStr);
+			int numDropped = Integer.parseInt(numDropStr);
+			
+			out.print("B,");
 			out.print(time + ",");
 			out.print(altStr + ",-999,");
 			out.print(numDropStr + "\n");
-			// String timeStr = getRelevantData(newData, TIME);
-			double alt = Double.parseDouble(altStr);
-			int numDropped = Integer.parseInt(numDropStr);
-			// double time = Double.parseDouble(timeStr);
-
-			dataScroll.update("DROP RECIEVED - TIME: " + ((double) (Math.round(time * 1000d) / 1000)) + "; ALT: "
-					+ ((double) (Math.round(alt * 1000d) / 1000)) + "; NUM_DROPPED: " + numDropped);
-
-			dataScroll.update("\n----------\n");
-
-			Point2D.Double p = new Point2D.Double((double) time, alt);
-			altChart.update(p, true); // Update Graphs
-			payloadDrop.payloadDropped((long) time, (long) alt, numDropped);
+			
+			System.out.println(newData);
+			System.out.println(numDropped);
+			System.out.println(lastNumDropped);
+			
+			if (numDropped != lastNumDropped || numDropped == 1) {
+	
+				dataScroll.update("DROP RECIEVED - TIME: " + ((double) (Math.round(time * 1000d) / 1000)) + "; ALT: "
+						+ ((double) (Math.round(alt * 1000d) / 1000)) + "; NUM_DROPPED: " + numDropped);
+	
+				dataScroll.update("\n----------\n");
+	
+				Point2D.Double p = new Point2D.Double((double) time, alt);
+				altChart.update(p, true); // Update Graphs
+				payloadDrop.payloadDropped((long) time, (long) alt, numDropped);
+				
+				lastNumDropped = numDropped;
+			}
 
 		}
 
@@ -361,35 +373,21 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 
 	// takes the raw "csv" type data string and extracts the relevant element in the string
 	public String getRelevantData(String rawData, int commaNumber) {
-		int startCommaIndex = 0, endCommaIndex;
-		int commaCount = 0;
-		while (commaCount < commaNumber) {
-			startCommaIndex = rawData.indexOf(',', startCommaIndex + 1);
-			commaCount++;
-		}
-		endCommaIndex = rawData.indexOf(',', startCommaIndex + 1);
-		String relevantData = rawData.substring(startCommaIndex + 1, endCommaIndex);
-		return relevantData;
+		String[] split = rawData.split(",");
+		
+		if (commaNumber < split.length)
+			return split[commaNumber];
+		else
+			return null;
 	}
 
-	// Remember to implement address-specific listening
+	// Method for when data is received
 	@Override
 	public void dataReceived(XBeeMessage message) {
-		// Method for when data is recieved
 		XBee64BitAddress address = message.getDevice().get64BitAddress();
 		
-		// System.out.println(address.toString()=="0013A20040E6D613");
 		if (address.toString().equals(TRANSMITTER_ADDRESS)) {
-			// check if data is from the correct address
-			String stringOutput = message.getDataString();
-			System.out.println(stringOutput);
-			
-			// +" "+stringOutput.substring(0,
-			// 1)+"
-			// "+stringOutput.substring(0,
-			// 1).equals("B"));
-			
-			update(stringOutput);
+			update(message.getDataString());
 		}
 	}
 
