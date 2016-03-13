@@ -295,6 +295,26 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 
 		return false;
 	}
+	
+	final int ALT_ARRAY_LENGTH = 5;
+	double altArray[] = new double[ALT_ARRAY_LENGTH];
+	int currentAltLoc = 0;
+	
+	private double altAvg() {
+		double sum = 0.0;
+		
+		for (int i = 0; i < ALT_ARRAY_LENGTH; ++i) {
+			sum += altArray[i];
+		}
+		
+		return sum / (double) ALT_ARRAY_LENGTH;
+	}
+	
+	private void altAdd(double alt) {
+		altArray[currentAltLoc++] = alt;
+		
+		if (currentAltLoc >= ALT_ARRAY_LENGTH) currentAltLoc = 0;
+	}
 
 	public void update(String newData) {
 		double time = (System.nanoTime() - startTime) / 1000000000.0;
@@ -313,7 +333,10 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			double alt = Double.parseDouble(altStr);
 			
 			// Convert alt to feet from meters
-			alt  /= 3.28084;
+			alt  *= 3.28084;
+			
+			altAdd(alt);
+			alt = altAvg();
 			
 			// double time = Double.parseDouble(timeStr);
 			double airSpeed = Double.parseDouble(airSpeedStr);
@@ -338,14 +361,17 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			//TODO: Test multiple B message values
 			// TODO: Work for multple 'B' message recieving
 
-			String altStr = getRelevantData(newData, B_ALTITUDE);
+			//String altStr = getRelevantData(newData, B_ALTITUDE);
 			String numDropStr = getRelevantData(newData, NUM_DROPPED);
-			double alt = Double.parseDouble(altStr);
+			double alt = Double.parseDouble(getRelevantData(newData, B_ALTITUDE));
 			int numDropped = Integer.parseInt(numDropStr);
+			
+			// Convert alt to feet from meters
+			alt  *= 3.28084;
 			
 			out.print("B,");
 			out.print(time + ",");
-			out.print(altStr + ",-999,");
+			out.print("" + ((double) (Math.round(alt * 1000d) / 1000)) + ",-999,");
 			out.print(numDropStr + "\n");
 			
 			System.out.println(newData);
@@ -386,7 +412,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 	public void dataReceived(XBeeMessage message) {
 		XBee64BitAddress address = message.getDevice().get64BitAddress();
 		
-		if (address.toString().equals(TRANSMITTER_ADDRESS)) {
+		if (address.toString().equals(TRANSMITTER_ADDRESS) || true) {
 			update(message.getDataString());
 		}
 	}

@@ -45,6 +45,10 @@ public class Instruments extends JPanel {
 	
 	public void update(int alt_in, float speed_in) {
 		altitude.setText(Integer.toString(alt_in));
-		speed.setText(Float.toString(speed_in));
+		
+		//speed.setText(Float.toString(speed_in));
+		
+		// TODO: Replace with real airspeed
+		speed.setText("???");;
 	}
 }
