@@ -45,7 +45,8 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 
 	// Location of specific telemetry in XBee message mapped out in English
 	// instead of numbers
-	// Messgae type: A
+	
+	// Message type: A
 	private static final int TIME = 2;
 	private static final int ALTITUDE = 3;
 	private static final int AIRSPEED = 7;
