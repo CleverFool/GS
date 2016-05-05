@@ -122,7 +122,6 @@ public class DataChart extends JPanel {
 	/*
 	 * Example of how to use the object
 	 */
-	
 	/*
 	public static void main(String[] args) {
 		Random r = new Random(); // rng

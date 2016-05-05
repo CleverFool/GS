@@ -11,30 +11,37 @@ import java.awt.Color;
 
 public class IndividualDropPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
-	
-	String dropStatus = "Unreleased";
-	int dropNumber;
 
 	private final int FONT_SIZE = 30;
 
-	JLabel dropName;
-	JTextArea dropStatusDisplay;
-	public IndividualDropPanel(int dropNumber) {
-		this.dropNumber = dropNumber;
+	private JLabel dropName;
+	
+	private JTextArea dropStatusDisplay;
+	private final String DEFAULT_STATUS = "Unreleased";
+	
+	public IndividualDropPanel(int payloadNumber) {
+		
+		// Create Layout for Panel
+		
 		BoxLayout layout = new BoxLayout(this, BoxLayout.Y_AXIS);
-		super.setLayout(layout);
-
-		dropName = new JLabel("Payload " + dropNumber);
-		super.add(dropName);
+		setLayout(layout);
+		
+		// Setup Drop Name for Payload
+		
+		dropName = new JLabel("Payload " + payloadNumber);
+		add(dropName);
+		
+		// Set new Font with size and alignment
+		
 		Font labelFont = dropName.getFont();
 		Font newFont = new Font(labelFont.getName(), Font.PLAIN, FONT_SIZE);
 
 		dropName.setFont(newFont);
 		dropName.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
-		
+		// Setup Drop Status Display
 
-		dropStatusDisplay = new JTextArea(dropStatus) {
+		dropStatusDisplay = new JTextArea(DEFAULT_STATUS) {
 			private static final long serialVersionUID = 1L;
 
 			// Prevent this from gaining focus. This is read-only so we don't want it 
@@ -43,14 +50,16 @@ public class IndividualDropPanel extends JPanel {
 				return false;
 			}
 		};
+		
+		// Set Status Display Properties
+		
 		dropStatusDisplay.setFont(newFont);
 		dropStatusDisplay.setEditable(false);
 		dropStatusDisplay.setBackground(Color.ORANGE);
-		super.add(dropStatusDisplay);
+		add(dropStatusDisplay);
 	}
 
 	public void updateDropStatus(String newStatus) {
-		dropStatus = newStatus;
 		dropStatusDisplay.setText(newStatus);
 		dropStatusDisplay.setBackground(Color.GREEN);
 	}

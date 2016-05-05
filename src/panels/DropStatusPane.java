@@ -14,28 +14,37 @@ public class DropStatusPane extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	
-	JLabel title;
-	boolean dropToUpdate = false;
-	IndividualDropPanel[] drops;
+	private JLabel title;
+	private boolean dropToUpdate = false;
+	private IndividualDropPanel[] drops;
 	private final int FONT_SIZE = 30;
 
 	public DropStatusPane() {
+		// Setup Layout for Pane
+		
 		BoxLayout layout = new BoxLayout(this, BoxLayout.Y_AXIS);
-		super.setLayout(layout);
+		setLayout(layout);
 
+		// Setup Title
+		
 		title = new JLabel("Drop Status");
-		super.add(title);
+		add(title);
+		
+		// Set font size and alignment
+		
 		Font labelFont = title.getFont();
 		Font newFont = new Font(labelFont.getName(), Font.PLAIN, FONT_SIZE);
 
 		title.setAlignmentX(Component.CENTER_ALIGNMENT);
 		title.setFont(newFont);
 
+		// Create individual drop panels and add them to this panel
+		
 		drops = new IndividualDropPanel[2];
 		drops[0] = new IndividualDropPanel(1);
 		drops[1] = new IndividualDropPanel(2);
-		super.add(drops[0]);
-		super.add(drops[1]);
+		add(drops[0]);
+		add(drops[1]);
 	}
 
 	/**
@@ -44,15 +53,15 @@ public class DropStatusPane extends JPanel {
 	 * @param altitude How high the plane was when it dropped the payload.
 	 */
 	public void payloadDropped(long time, long altitude, int numDropped) {
-
 		String newPayloadStatus = "";//Construct a drop status message
 		newPayloadStatus += time;
 		newPayloadStatus += "s; ";
 		newPayloadStatus += altitude;
 		newPayloadStatus += "ft"; // Change to whatever units the altitude is given in.
 		newPayloadStatus += ";\n ";
-		newPayloadStatus += numDropped+" dropped";
+		newPayloadStatus += numDropped + " dropped";
 		
+		// Code to alternate which drop status panel to update
 		drops[dropToUpdate ? 1 : 0].updateDropStatus(newPayloadStatus);
 		dropToUpdate = !dropToUpdate;
 	}
@@ -62,6 +71,7 @@ public class DropStatusPane extends JPanel {
 	 * @param duration Time in seconds since start of flight.
 	 * @return A string representation of the duration.
 	 */ //Not sure if this method is still needed
+	/*
 	protected String timeElapsedToString(long duration) {
 		final long HpS = 60 * 60;
 		final long MpS = 60;
@@ -73,4 +83,5 @@ public class DropStatusPane extends JPanel {
 		String time = hours + ":" + minutes + ":" + seconds;
 		return time;
 	}
+	*/
 }
