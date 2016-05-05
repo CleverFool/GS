@@ -27,11 +27,15 @@ import com.digi.xbee.api.models.XBee64BitAddress;
 import com.digi.xbee.api.models.XBeeMessage;
 
 import gnu.io.CommPortIdentifier;
+import panels.DataChart;
+import panels.DropStatusPane;
+import panels.Instruments;
+import panels.ScrollingDataText;
 
 public class GroundStationMain extends JFrame implements IDataReceiveListener, ActionListener {
 
 	// Debug boolean
-	private static final boolean DEBUG_WITHOUT_RADIO = false;
+	private static final boolean DEBUG_WITHOUT_RADIO = true;
 
 	// Constants
 	private static final long serialVersionUID = -5652170290197609712L;
@@ -127,7 +131,9 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			comStatus.setText("Com Status: Debugging GUI without radio");
 			comStatus.setBackground(Color.YELLOW);
 			comStatus.setForeground(Color.BLACK);
+			
 			this.testXBeeMessageParsing();
+			
 			comStatus.setText("Com Status: No Attempts to Connect Yet");
 			comStatus.setBackground(Color.BLUE);
 			comStatus.setForeground(Color.YELLOW);
@@ -323,7 +329,7 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 
 		if (newData.substring(0, 1).equals("A")) {
 			String altStr = getRelevantData(newData, ALTITUDE);
-			// String timeStr = getRelevantData(newData, TIME);
+			
 			out.print("A," + time);
 			out.print("," + altStr + ",");
 
@@ -417,26 +423,35 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			update(message.getDataString());
 		}
 	}
-
+	
+	static int test_dropped = 0;
+	
 	public void testXBeeMessageParsing() {
 		// Random Data generator for testing without xbee telemetry
 		
-		for (int i = 0; i < 120; i++) {
-			String raw = "A,MFLY," + (Math.random() + i) + "," + Math.random() * 100 + ",,,," + Math.random() * 20
-					+ ",";
-			if (i % 10 == 9) {
-				raw = "B,1.4," + (int) (Math.random() * 2) + "," + Math.random() * 100 + ",";
+		// Note: Message Documentation from Arduino FCM Code
+		// A,M-Fly,ALTITUDE,GYROX,GYROY,GYROZ,AIRSPEED,VOLTAGE,DROPPED,ACCELX,ACCELY,ACCELZ
+		// B,TIME,DROPPED,ALT,
+		
+		for (int i = 0; i < 2000; i++) {
+			int time = i;
+			int alt = (int) (Math.random() * 100);
+			
+			String raw = "A,M-Fly," + time + "," + alt + ",0,0,0," + (Math.random() * 10 + 10) + ",9," + test_dropped + ",0,0,0";
+			
+			if ((int) (Math.random() * 50) == 9) {
+				++test_dropped;
+				raw = "B," + time + "," + test_dropped + "," + alt + ",";
 			}
 			update(raw);
-			System.out.println(raw);
 			// this.revalidate();
-
+			/*
 			try {
-				Thread.sleep(500);
+				Thread.sleep(1);
 			} catch (InterruptedException e) {
 				// Do Nothing
 			}
-			;
+			*/
 		}
 	}
 

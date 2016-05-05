@@ -1,4 +1,4 @@
-package gui;
+package panels;
 
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
