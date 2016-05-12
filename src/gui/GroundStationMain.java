@@ -32,6 +32,8 @@ import panels.DropStatusPane;
 import panels.Instruments;
 import panels.ScrollingDataText;
 
+//TODO: Update this and lots of cleanup
+
 public class GroundStationMain extends JFrame implements IDataReceiveListener, ActionListener {
 
 	// Debug boolean
