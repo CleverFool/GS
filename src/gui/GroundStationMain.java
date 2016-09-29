@@ -447,13 +447,12 @@ public class GroundStationMain extends JFrame implements IDataReceiveListener, A
 			}
 			update(raw);
 			// this.revalidate();
-			/*
+			
 			try {
-				Thread.sleep(1);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				// Do Nothing
 			}
-			*/
 		}
 	}
 
